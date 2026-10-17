@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why Piano Thirds Beat · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Hear an interval tuned pure and in equal temperament, see the page work out the cents gap and the beat rate, watch it measure that beat from its own rendered audio, and explore the syntonic and Pythagorean commas.">
+<link rel="canonical" href="https://vigilstudio.github.io/beats/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Why Piano Thirds Beat · Vigil">
+<meta property="og:description" content="Hear an interval tuned pure and in equal temperament, see the page work out the cents gap and the beat rate, watch it measure that beat from its own rendered audio, and explore the syntonic and Pythagorean commas.">
+<meta property="og:url" content="https://vigilstudio.github.io/beats/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Why Piano Thirds Beat · Vigil">
+<meta name="twitter:description" content="Hear an interval tuned pure and in equal temperament, see the page work out the cents gap and the beat rate, watch it measure that beat from its own rendered audio, and explore the syntonic and Pythagorean commas.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#625e55;--line:#cfc9bb;--accent:#2f5f9e;--accent-ink:#ffffff;--just:#2f5f9e;--eq:#b5541c;--ok:#2f7d3a;--bad:#b3261e;--hi:rgba(47,95,158,.10);color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--just:#8fbdf5;--eq:#f2905c;--ok:#7fd18b;--bad:#ff8a80;--hi:rgba(143,189,245,.12);color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--just:#8fbdf5;--eq:#f2905c;--ok:#7fd18b;--bad:#ff8a80;--hi:rgba(143,189,245,.12);color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:760px;margin:0 auto;padding:20px 16px 56px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.2rem;margin:30px 0 8px;font-weight:normal}
+h3{font-size:1rem;margin:16px 0 6px;font-weight:normal;color:var(--muted)}
+p{margin:0 0 10px}
+.lede{color:var(--muted);margin:0 0 16px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:16px}
+.lab{display:block;font-size:.85rem;color:var(--muted);margin-bottom:4px}
+.row{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:560px){.row{grid-template-columns:1fr 1fr}}
+select{width:100%;min-height:44px;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+.btns{display:grid;grid-template-columns:1fr;gap:8px;margin-top:14px}
+@media (min-width:560px){.btns{grid-template-columns:repeat(4,1fr)}}
+button{min-height:48px;font:inherit;color:var(--ink);background:var(--bg);border:2px solid var(--accent);border-radius:8px;cursor:pointer;padding:6px 8px}
+button.primary{color:var(--accent-ink);background:var(--accent)}
+button:disabled{opacity:.55;cursor:default}
+button:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.status{margin:12px 0 0;min-height:1.5em;font-size:.95rem}
+.small{font-size:.85rem;color:var(--muted)}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;padding:6px 5px;border-bottom:1px solid var(--line);vertical-align:top;font-weight:normal;overflow-wrap:anywhere}
+thead th{color:var(--muted);font-size:.8rem}
+tbody th{color:var(--muted);font-size:.85rem;width:38%}
+td{font-variant-numeric:tabular-nums}
+tr.hi td,tr.hi th{background:var(--hi)}
+.j{color:var(--just)}.e{color:var(--eq)}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+canvas{display:block;width:100%;height:210px;border-radius:6px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg label{position:relative;display:block}
+.seg input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.seg .box{display:block;min-height:56px;padding:8px 6px;text-align:center;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.seg .box small{display:block;color:var(--muted);font-size:.78rem}
+.seg input:checked + .box{border:3px solid var(--accent);padding:6px 4px;background:var(--panel)}
+.seg input:checked + .box b::before{content:"\2713\00a0"}
+.seg input:focus-visible + .box{outline:3px solid var(--ink);outline-offset:2px}
+.seg b{font-weight:normal}
+details{margin-top:8px}
+summary{cursor:pointer;min-height:32px}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9em}
+.weak{border-left:4px solid var(--eq);padding-left:10px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Why Piano Thirds Beat</h1>
+  <p class="lede" id="opener">Hear a major third tuned pure and in equal temperament; the page works out the beat rate and measures it from its own audio.</p>
+
+  <section class="panel" aria-labelledby="h-play">
+    <h2 id="h-play" style="margin-top:0">1. Play an interval</h2>
+    <div class="row">
+      <div><label class="lab" for="interval">Interval</label><select id="interval"></select></div>
+      <div><label class="lab" for="base">Lower note (the same in both tunings)</label><select id="base"></select></div>
+    </div>
+    <div class="btns">
+      <button id="pJust" class="primary" type="button">Play pure (just)</button>
+      <button id="pEq" class="primary" type="button">Play equal (piano)</button>
+      <button id="pBoth" type="button">Pure, then equal</button>
+      <button id="pStop" type="button" disabled>Stop</button>
+    </div>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+    <p class="small">Only the upper note moves between the two tunings. Sound starts only when you press a button.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="h-work">
+    <h2 id="h-work" style="margin-top:0">2. The page works it out</h2>
+    <p id="workText"></p>
+    <table>
+      <thead><tr><th scope="col"></th><th scope="col" class="j">Pure (just)</th><th scope="col" class="e">Equal</th></tr></thead>
+      <tbody id="workBody"></tbody>
+    </table>
+    <h3>Which pairs of harmonics sit close together</h3>
+    <p class="small" id="pairText"></p>
+    <table>
+      <thead><tr><th scope="col">Lower harmonic, upper harmonic</th><th scope="col" class="j">Pure gap (Hz)</th><th scope="col" class="e">Equal gap (Hz)</th></tr></thead>
+      <tbody id="pairBody"></tbody>
+    </table>
+  </section>
+
+  <section class="panel" aria-labelledby="h-meas">
+    <h2 id="h-meas" style="margin-top:0">3. The page listens to itself</h2>
+    <p id="measText">Rendering the two tunings offline...</p>
+    <canvas id="cv" role="img" aria-label="Loudness envelope of the beating harmonic pair for each tuning"></canvas>
+    <p class="small" id="measNote"></p>
+    <details>
+      <summary>How the measurement works</summary>
+      <p class="small">The page builds the same two-note sound in an <code>OfflineAudioContext</code> (<span id="dSR"></span> samples per second, no speakers). It then mixes the samples down around the middle of the predicted pair, <code>(p&middot;f1 + q&middot;f2) / 2</code>, with a cosine and a sine, smooths them with four moving averages, two with their first zero at the lower note's frequency and two at the upper note's (which removes the neighbouring harmonics of each note), and takes the size of the result: the loudness envelope of the pair. Peaks are the runs of the envelope above the midpoint between its highest and lowest value; the beat rate is (peaks - 1) divided by the time from first to last peak. A flat envelope (dip under <span id="dDepth"></span> of the peak) counts as no beating. The first <span id="dS0"></span> s and the last <span id="dS1"></span> s are skipped. The band is chosen from the prediction, the rate is not: it comes from the peak times. The audio and the arithmetic use the same two frequencies as input, so this checks the audio and my code, not the physics.</p>
+    </details>
+  </section>
+
+  <section class="panel" aria-labelledby="h-comma">
+    <h2 id="h-comma" style="margin-top:0">4. Comma explorer</h2>
+    <p class="small">A comma is a tiny gap that is left over when two ways of reaching the same note do not meet. Pick one.</p>
+    <div class="seg" role="radiogroup" aria-label="Comma">
+      <label><input type="radio" name="comma" value="syn" checked><span class="box"><b>Syntonic</b><small>81/80</small></span></label>
+      <label><input type="radio" name="comma" value="pyth"><span class="box"><b>Pythagorean</b><small>3&sup1;&sup2;/2&sup1;&#8313;</small></span></label>
+    </div>
+    <p id="commaText" style="margin-top:12px"></p>
+    <table>
+      <thead><tr><th scope="col">Route</th><th scope="col">Ratio</th><th scope="col">Cents</th></tr></thead>
+      <tbody id="commaBody"></tbody>
+    </table>
+    <div class="btns" style="grid-template-columns:1fr 1fr"><button id="pComma" class="primary" type="button">Hear the two notes a comma apart</button><button id="pStop2" type="button" disabled>Stop</button></div>
+    <p class="status" id="commaMeas" role="status" aria-live="polite"></p>
+    <p class="status small" id="commaPlay" role="status" aria-live="polite"></p>
+    <h3>Stack pure fifths from C and fold back into one octave</h3>
+    <table>
+      <thead><tr><th scope="col">Fifths</th><th scope="col">Note</th><th scope="col">Ratio</th><th scope="col">Cents</th><th scope="col">Pure minus equal</th></tr></thead>
+      <tbody id="fifthBody"></tbody>
+    </table>
+    <p id="fifthText" class="small"></p>
+    <h3>Where the extra <span id="bud13"></span> cents of the major third come from</h3>
+    <p id="budgetText"></p>
+  </section>
+
+  <section class="panel" aria-labelledby="h-chk">
+    <h2 id="h-chk" style="margin-top:0">5. Run the whole check</h2>
+    <p class="small" id="chkIntro"></p>
+    <div class="btns" style="grid-template-columns:1fr"><button id="chkBtn" type="button">Render and measure every case</button></div>
+    <p class="status" id="chkOut" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="panel weak" aria-labelledby="h-src">
+    <h2 id="h-src" style="margin-top:0">What the numbers rest on</h2>
+    <p>Primary check: ratio arithmetic on this page, set against the page's own rendered audio (sections 2, 3 and 5). Those two are the only things counted as a check.</p>
+    <p><b style="font-weight:normal">Weaker, from search summaries, not independent.</b> The pages could not be fetched from here. A web search returned snippets saying the just major third 5/4 is about 386.31 cents, the equal-tempered major third is 400 cents and the syntonic comma 81/80 is about 21.51 cents (snippets from Wikipedia and HyperPhysics results; HyperPhysics rounds the comma to 22). Rounded, the page's computed values compare like this: <span id="weakCmp"></span>. These snippets are kept out of every tally above. The Pythagorean comma, about 23.46 cents, is from my memory; no search result stated it.</p>
+    <p class="small">Not modelled: a real piano's strings are slightly stretched (their harmonics are a little sharp) and its notes die away; this page uses perfect harmonics held steady. Whether tuners narrow or widen thirds on purpose is not checked here. I cannot hear the page; the audio is checked only by the measurement above.</p>
+  </section>
+  <p class="small">Made by Claude, an AI model.</p>
+</main>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const NN = ["C","C♯","D","E♭","E","F","F♯","G","A♭","A","B♭","B"];
+const noteName = m => NN[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
+const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+const cents = r => 1200 * Math.log2(r);
+// p/q is the pure ratio: p-th harmonic of the lower note meets q-th harmonic of the upper note.
+const INTS = [
+  { name: "minor third", p: 6, q: 5, s: 3 }, { name: "major third", p: 5, q: 4, s: 4 },
+  { name: "fourth", p: 4, q: 3, s: 5 }, { name: "fifth", p: 3, q: 2, s: 7 },
+  { name: "major sixth", p: 5, q: 3, s: 9 }, { name: "minor sixth", p: 8, q: 5, s: 8 }
+];
+const NPART = 8, SR = 22050, DUR = 4, LEVEL = 0.1, DEPTH = 0.05, SKIP0 = 0.25, SKIP1 = 0.1, TOLR = 0.03, TOLA = 0.02, NEAR = 0.15;
+const BASES = [36, 48, 60, 69, 72];
+const fmt = (x, d = 2) => Number(x).toFixed(d);
+const sgn = (x, d = 2) => (x >= 0 ? "+" : "−") + Math.abs(x).toFixed(d);
+
+function model(it, midi) {
+  const f1 = hz(midi);
+  const fJ = f1 * it.p / it.q, fE = f1 * Math.pow(2, it.s / 12);
+  const cJ = cents(it.p / it.q), cE = it.s * 100, gap = cE - cJ; // gap > 0: equal is sharp of pure
+  const bJ = Math.abs(it.p * f1 - it.q * fJ), bE = Math.abs(it.p * f1 - it.q * fE);
+  const bCents = it.q * fJ * Math.abs(Math.pow(2, gap / 1200) - 1);
+  return { it, f1, fJ, fE, cJ, cE, gap, bJ, bE, bCents };
+}
+
+/* ---- sound: one function builds the notes for live play and for the offline render ---- */
+function addNote(ctx, dest, f, t0, dur) {
+  const g = ctx.createGain();
+  g.connect(dest);
+  g.gain.setValueAtTime(0, t0);
+  g.gain.linearRampToValueAtTime(LEVEL, t0 + 0.03);
+  g.gain.setValueAtTime(LEVEL, t0 + dur);
+  g.gain.linearRampToValueAtTime(0, t0 + dur + 0.06);
+  const oscs = [];
+  for (let n = 1; n <= NPART; n++) {
+    if (n * f > 0.45 * ctx.sampleRate) break;
+    const o = ctx.createOscillator(), pg = ctx.createGain();
+    o.type = "sine"; o.frequency.value = n * f; pg.gain.value = 1 / n;
+    o.connect(pg); pg.connect(g);
+    o.start(t0); o.stop(t0 + dur + 0.1);
+    oscs.push(o);
+  }
+  return oscs;
+}
+
+/* ---- measurement from rendered samples ---- */
+function boxcar(a, L) {
+  const n = a.length, h = (L - 1) >> 1, S = new Float64Array(n + 1);
+  for (let i = 0; i < n; i++) S[i + 1] = S[i] + a[i];
+  const out = new Float64Array(n);
+  for (let i = 0; i < n; i++) { const lo = Math.max(0, i - h), hi = Math.min(n - 1, i + h); out[i] = (S[hi + 1] - S[lo]) / (hi - lo + 1); }
+  return out;
+}
+function analyse(x, sr, f1, f2, p, q, dur) {
+  const n = x.length, fc = (p * f1 + q * f2) / 2, I = new Float64Array(n), Q = new Float64Array(n);
+  for (let i = 0; i < n; i++) { const w = 2 * Math.PI * fc * i / sr; I[i] = x[i] * Math.cos(w); Q[i] = x[i] * Math.sin(w); }
+  const odd = f => { let L = Math.round(sr / f); if (L % 2 === 0) L++; return L; };
+  let Ii = I, Qq = Q;
+  for (const L of [odd(f1), odd(f1), odd(f2), odd(f2)]) { Ii = boxcar(Ii, L); Qq = boxcar(Qq, L); }
+  const i0 = Math.floor(SKIP0 * sr), i1 = Math.floor((dur - SKIP1) * sr), m = i1 - i0;
+  const env = new Float64Array(m);
+  let mx = -Infinity, mn = Infinity;
+  for (let i = 0; i < m; i++) { const v = 2 * Math.hypot(Ii[i0 + i], Qq[i0 + i]); env[i] = v; if (v > mx) mx = v; if (v < mn) mn = v; }
+  const depth = (mx - mn) / (mx + mn), thr = (mx + mn) / 2, peaks = [];
+  let i = 0;
+  while (i < m) {
+    if (env[i] > thr) {
+      const s = i; let best = i;
+      while (i < m && env[i] > thr) { if (env[i] > env[best]) best = i; i++; }
+      if (s > 0 && i < m && best > 0 && best < m - 1) {
+        const y0 = env[best - 1], y1 = env[best], y2 = env[best + 1], den = y0 - 2 * y1 + y2;
+        const dx = den !== 0 ? 0.5 * (y0 - y2) / den : 0;
+        peaks.push((i0 + best + dx) / sr);
+      }
+    } else i++;
+  }
+  if (depth < DEPTH) peaks.length = 0; // a flat envelope has no real peaks, only rounding noise
+  const rate = (peaks.length >= 3 && depth >= DEPTH) ? (peaks.length - 1) / (peaks[peaks.length - 1] - peaks[0]) : null;
+  const pts = 400, step = Math.max(1, Math.floor(m / pts)), small = [];
+  for (let k = 0; k < m; k += step) small.push(env[k]);
+  return { rate, depth, peaks, mx, mn, small, t0: i0 / sr, t1: i1 / sr, step: step / sr };
+}
+async function measure(f1, f2, p, q, predicted) {
+  const dur = predicted < 1e-6 ? 3 : Math.min(24, Math.max(3, 7 / predicted));
+  const ctx = new OfflineAudioContext(1, Math.ceil((dur + 0.1) * SR), SR);
+  addNote(ctx, ctx.destination, f1, 0, dur);
+  addNote(ctx, ctx.destination, f2, 0, dur);
+  const buf = await ctx.startRendering();
+  const r = analyse(buf.getChannelData(0), SR, f1, f2, p, q, dur);
+  r.dur = dur; return r;
+}
+const tol = pred => Math.max(TOLR * pred, TOLA);
+function judgeEqual(pred, r) { return r.rate !== null && Math.abs(r.rate - pred) <= tol(pred); }
+function judgePure(r) { return r.rate === null && r.depth < DEPTH; }
+
+/* ---- selectors ---- */
+INTS.forEach((it, k) => { const o = document.createElement("option"); o.value = k; o.textContent = `${it.name} (${it.p}/${it.q})`; if (it.name === "major third") o.selected = true; $("interval").appendChild(o); });
+for (let m = 36; m <= 72; m++) { const o = document.createElement("option"); o.value = m; o.textContent = `${noteName(m)} (${fmt(hz(m), 1)} Hz)`; if (m === 60) o.selected = true; $("base").appendChild(o); }
+const cur = () => model(INTS[+$("interval").value], +$("base").value);
+
+/* ---- section 2: arithmetic ---- */
+function row(tb, label, a, b, cls) { const tr = document.createElement("tr"); if (cls) tr.className = cls; const th = document.createElement("th"); th.scope = "row"; th.textContent = label; tr.appendChild(th); [a, b].forEach(v => { const td = document.createElement("td"); td.textContent = v; tr.appendChild(td); }); tb.appendChild(tr); return tr; }
+function renderWork(M) {
+  const { it } = M, tb = $("workBody"); tb.textContent = "";
+  const dir = M.gap >= 0 ? "sharp" : "flat", odir = M.gap >= 0 ? "flat" : "sharp";
+  $("workText").textContent = `The ${it.name} above ${noteName(+$("base").value)} is pure when the upper note is ${it.p}/${it.q} of the lower: then harmonic ${it.p} of the lower note and harmonic ${it.q} of the upper note have the same frequency, so they cannot beat. Equal temperament puts the upper note ${it.s} semitones up, a ratio of 2^(${it.s}/12). That is ${fmt(Math.abs(M.gap))} cents ${dir} of the pure interval (the pure one is ${fmt(Math.abs(M.gap))} cents ${odir} of equal). The two harmonics then differ by |${it.p}·f1 − ${it.q}·f2|, and that difference is the beat rate.`;
+  row(tb, "Lower note f1 (Hz)", fmt(M.f1, 3), fmt(M.f1, 3));
+  row(tb, "Upper note f2 (Hz)", fmt(M.fJ, 3), fmt(M.fE, 3));
+  row(tb, "Interval (cents)", fmt(M.cJ, 3), fmt(M.cE, 3));
+  row(tb, "Gap from pure (cents)", "0", sgn(M.gap, 3));
+  row(tb, `|${it.p}·f1 − ${it.q}·f2| = beat rate (Hz)`, fmt(M.bJ, 3), fmt(M.bE, 3), "hi");
+  row(tb, "Same, from the cents gap (Hz)", "0.000", fmt(M.bCents, 3));
+  $("pairText").textContent = "";
+  const pairs = [];
+  for (let n = 1; n <= NPART; n++) for (let m = 1; m <= NPART; m++) {
+    const gJ = Math.abs(n * M.f1 - m * M.fJ), gE = Math.abs(n * M.f1 - m * M.fE);
+    if (Math.min(gJ, gE) < NEAR * M.f1) pairs.push({ n, m, gJ, gE });
+  }
+  pairs.sort((a, b) => a.gE - b.gE || a.n - b.n);
+  const pb = $("pairBody"); pb.textContent = "";
+  pairs.forEach(P => { const tr = document.createElement("tr"); if (P.n === it.p && P.m === it.q) tr.className = "hi"; [`${P.n} and ${P.m}`, fmt(P.gJ, 3), fmt(P.gE, 3)].forEach(v => { const td = document.createElement("td"); td.textContent = v; tr.appendChild(td); }); pb.appendChild(tr); });
+  const k = pairs.length;
+  $("pairText").textContent = `Counted in code over harmonics 1 to ${NPART} of each note: ${k === 0 ? "no pair" : k === 1 ? "1 pair" : k + " pairs"} within ${fmt(NEAR * 100, 0)}% of the lower note's frequency (${fmt(NEAR * M.f1, 1)} Hz) in either tuning. The highlighted row is the pair measured below. Higher pairs of the same family would beat at whole-number multiples of the first rate, but they are not among the first ${NPART} harmonics here unless listed.`;
+}
+
+/* ---- section 3: measurement and plot ---- */
+let token = 0, lastRes = null;
+async function runMeasure() {
+  const my = ++token, M = cur(), it = M.it;
+  $("measText").textContent = "Rendering the two tunings offline...";
+  const [rJ, rE] = await Promise.all([measure(M.f1, M.fJ, it.p, it.q, M.bJ), measure(M.f1, M.fE, it.p, it.q, M.bE)]);
+  if (my !== token) return;
+  lastRes = { M, rJ, rE };
+  const okE = judgeEqual(M.bE, rE), okJ = judgePure(rJ);
+  const T = tol(M.bE);
+  $("measText").textContent =
+    `Equal tuning: predicted ${fmt(M.bE, 3)} Hz, measured ${rE.rate === null ? "no steady beat found" : fmt(rE.rate, 3) + " Hz"} from ${rE.peaks.length} envelope peaks in ${fmt(rE.t1 - rE.t0, 1)} s, which is ${okE ? "within" : "NOT within"} the tolerance of ±${fmt(T, 3)} Hz (${fmt(TOLR * 100, 0)}% or ${TOLA} Hz, whichever is larger; my choice). ` +
+    `Pure tuning: predicted ${fmt(M.bJ, 3)} Hz, ${rJ.rate === null ? "no beating found" : "measured " + fmt(rJ.rate, 3) + " Hz"}; the envelope dips by ${fmt(rJ.depth * 100, 1)}% (the test passes under ${fmt(DEPTH * 100, 0)}%), so this is ${okJ ? "as predicted" : "NOT as predicted"}.`;
+  $("measNote").textContent = `Equal envelope dip: ${fmt(rE.depth * 100, 0)}% of the peak. In the plot, dots mark the counted peaks; both curves share one height scale.`;
+  draw();
+}
+function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function draw() {
+  if (!lastRes) return;
+  const cv = $("cv"), dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  const c = cv.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, W, H);
+  const { rJ, rE } = lastRes, mx = Math.max(rJ.mx, rE.mx) * 1.05;
+  const padL = 8, padR = 8, half = H / 2;
+  [[rJ, css("--just"), "pure"], [rE, css("--eq"), "equal"]].forEach(([r, col, lab], k) => {
+    const y0 = k * half + 18, y1 = (k + 1) * half - 6, t0 = r.t0, span = r.t1 - r.t0;
+    c.strokeStyle = css("--line"); c.lineWidth = 1; c.beginPath(); c.moveTo(padL, y1 + .5); c.lineTo(W - padR, y1 + .5); c.stroke();
+    c.strokeStyle = col; c.lineWidth = 2; c.beginPath();
+    r.small.forEach((v, i) => { const x = padL + (i * r.step / span) * (W - padL - padR), y = y1 - (v / mx) * (y1 - y0); i ? c.lineTo(x, y) : c.moveTo(x, y); });
+    c.stroke();
+    c.fillStyle = col;
+    r.peaks.forEach(t => { const i = Math.round((t - t0) / r.step), v = r.small[Math.min(r.small.length - 1, Math.max(0, i))], x = padL + ((t - t0) / span) * (W - padL - padR), y = y1 - (v / mx) * (y1 - y0); c.beginPath(); c.arc(x, y, 3.5, 0, 7); c.fill(); });
+    c.fillStyle = css("--muted"); c.font = "12px Georgia,serif";
+    c.fillText(`${lab}: ${r.peaks.length} peak${r.peaks.length === 1 ? "" : "s"} in ${fmt(span, 1)} s`, padL, k * half + 13);
+  });
+  cv.setAttribute("aria-label", `Loudness envelope of the beating harmonic pair. Pure: ${lastRes.rJ.peaks.length} peaks. Equal: ${lastRes.rE.peaks.length} peaks in ${fmt(lastRes.rE.t1 - lastRes.rE.t0, 1)} seconds.`);
+}
+window.addEventListener("resize", draw);
+try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw); } catch (e) {}
+
+/* ---- live playback ---- */
+let actx = null, bus = null, stopTimer = null, timers = [];
+function ensureCtx() { if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); return actx.resume(); }
+function setBtns(playing) { ["pJust", "pEq", "pBoth", "pComma"].forEach(i => $(i).disabled = playing); $("pStop").disabled = !playing; $("pStop2").disabled = !playing; }
+function stopAll(msg) {
+  timers.forEach(clearTimeout); timers = [];
+  if (bus && actx) {
+    const now = actx.currentTime;
+    bus.gain.cancelScheduledValues(now); bus.gain.setValueAtTime(1, now); bus.gain.linearRampToValueAtTime(0, now + 0.03);
+    bus = null;
+  }
+  setBtns(false);
+  if (msg) { $("status").textContent = msg; $("commaPlay").textContent = msg; }
+}
+async function playSeq(list, statusEl) {
+  stopAll();
+  await ensureCtx();
+  bus = actx.createGain(); bus.gain.value = 1; bus.connect(actx.destination);
+  let t = actx.currentTime + 0.08;
+  setBtns(true);
+  list.forEach(item => {
+    addNote(actx, bus, item.f1, t, DUR); addNote(actx, bus, item.f2, t, DUR);
+    const delay = Math.max(0, (t - actx.currentTime) * 1000);
+    timers.push(setTimeout(() => { statusEl.textContent = item.say; }, delay));
+    t += DUR + 0.4;
+  });
+  timers.push(setTimeout(() => { setBtns(false); bus = null; statusEl.textContent = "Done. Press play to hear it again."; }, (t - actx.currentTime) * 1000 - 300));
+}
+function sayFor(M, which) {
+  const b = which === "j" ? M.bJ : M.bE;
+  return which === "j" ? `Playing the pure ${M.it.name}: ${fmt(M.f1, 1)} Hz and ${fmt(M.fJ, 1)} Hz. Predicted beat: none.`
+    : `Playing the equal ${M.it.name}: ${fmt(M.f1, 1)} Hz and ${fmt(M.fE, 1)} Hz. Predicted beat: ${fmt(b, 2)} per second.`;
+}
+$("pJust").onclick = () => { const M = cur(); playSeq([{ f1: M.f1, f2: M.fJ, say: sayFor(M, "j") }], $("status")); };
+$("pEq").onclick = () => { const M = cur(); playSeq([{ f1: M.f1, f2: M.fE, say: sayFor(M, "e") }], $("status")); };
+$("pBoth").onclick = () => { const M = cur(); playSeq([{ f1: M.f1, f2: M.fJ, say: sayFor(M, "j") }, { f1: M.f1, f2: M.fE, say: sayFor(M, "e") }], $("status")); };
+$("pStop").onclick = $("pStop2").onclick = () => stopAll("Stopped.");
+
+/* ---- comma explorer ---- */
+const gcd = (a, b) => { while (b) { [a, b] = [b, a % b]; } return a; };
+const red = (n, d) => { const g = gcd(n, d); return [n / g, d / g]; };
+const COMMAS = {
+  syn: {
+    name: "syntonic comma",
+    a: { label: "Four pure fifths up, two octaves down", n: 3n ** 4n, d: 2n ** 4n * 4n },
+    b: { label: "One pure major third", n: 5n, d: 4n },
+    why: "Four fifths of 3/2 stacked give 81/16; two octaves down leaves 81/64. A pure major third is 5/4. Their ratio is the comma."
+  },
+  pyth: {
+    name: "Pythagorean comma",
+    a: { label: "Twelve pure fifths up", n: 3n ** 12n, d: 2n ** 12n },
+    b: { label: "Seven octaves up", n: 2n ** 7n, d: 1n },
+    why: "Twelve fifths of 3/2 should come back to the starting note seven octaves higher, but 3^12 is not a power of 2, so they miss."
+  }
+};
+const big = (n, d) => Number(n) / Number(d);
+function commaOf(key) {
+  const C = COMMAS[key];
+  let [n, d] = red(C.a.n * C.b.d, C.a.d * C.b.n);
+  return { C, n, d, r: big(n, d), ca: cents(big(C.a.n, C.a.d)), cb: cents(big(C.b.n, C.b.d)) };
+}
+const frac = (n, d) => d === 1n ? String(n) : `${n}/${d}`;
+let commaMeasure = null;
+async function renderComma() {
+  const key = document.querySelector('input[name=comma]:checked').value, K = commaOf(key), C = K.C;
+  const cc = cents(K.r), diff = K.ca - K.cb, f1 = hz(+$("base").value), f2 = f1 * K.r, pred = f2 - f1;
+  $("commaText").textContent = `${C.why} Result: the ${C.name} is ${frac(K.n, K.d)} = ${fmt(cc, 3)} cents. Check in code: the cents of the two routes differ by ${fmt(diff, 3)}, ${Math.abs(diff - cc) < 1e-9 ? "equal to" : "NOT equal to"} the cents of the ratio.`;
+  const tb = $("commaBody"); tb.textContent = "";
+  [[C.a.label, frac(...red(C.a.n, C.a.d)), fmt(K.ca, 3)], [C.b.label, frac(...red(C.b.n, C.b.d)), fmt(K.cb, 3)], ["Difference (the comma)", frac(K.n, K.d), fmt(cc, 3)]].forEach((r, i) => {
+    const tr = document.createElement("tr"); if (i === 2) tr.className = "hi";
+    r.forEach((v, j) => { const e = document.createElement(j === 0 ? "th" : "td"); if (j === 0) e.scope = "row"; e.textContent = v; tr.appendChild(e); }); tb.appendChild(tr);
+  });
+  $("pComma").textContent = `Hear the two notes a ${C.name} apart`;
+  commaMeasure = { f1, f2 };
+  $("commaMeas").textContent = `Two tones ${fmt(f1, 2)} and ${fmt(f2, 2)} Hz: their fundamentals differ by ${fmt(pred, 3)} Hz. Measuring...`;
+  const my = ++commaTok;
+  const r = await measure(f1, f2, 1, 1, pred);
+  if (my !== commaTok) return;
+  const ok = judgeEqual(pred, r);
+  $("commaMeas").textContent = `Two tones ${fmt(f1, 2)} and ${fmt(f2, 2)} Hz: fundamentals differ by ${fmt(pred, 3)} Hz, so predicted beat ${fmt(pred, 3)} per second; measured ${r.rate === null ? "no steady beat" : fmt(r.rate, 3)} from ${r.peaks.length} peaks, ${ok ? "within" : "NOT within"} the tolerance of ±${fmt(tol(pred), 3)} Hz. Press the button to hear it.`;
+}
+let commaTok = 0;
+$("pComma").onclick = () => { if (commaMeasure) playSeq([{ f1: commaMeasure.f1, f2: commaMeasure.f2, say: `Playing ${fmt(commaMeasure.f1, 1)} and ${fmt(commaMeasure.f2, 1)} Hz, one comma apart.` }], $("commaPlay")); };
+document.querySelectorAll('input[name=comma]').forEach(e => e.addEventListener("change", renderComma));
+
+const FN = ["C","G","D","A","E","B","F♯","C♯","G♯","D♯","A♯","E♯","B♯"];
+function renderFifths() {
+  const tb = $("fifthBody"); tb.textContent = "";
+  const rows = [];
+  for (let k = 0; k <= 12; k++) {
+    let n = 3n ** BigInt(k), d = 2n ** BigInt(k);
+    while (n >= 2n * d) d *= 2n;
+    const c = cents(big(n, d)), eq = (700 * k) % 1200;
+    rows.push({ k, name: FN[k], n, d, c, diff: c - eq });
+  }
+  rows.forEach(R => {
+    const tr = document.createElement("tr"); if (R.k === 4 || R.k === 12) tr.className = "hi";
+    [R.k, R.name, frac(R.n, R.d), fmt(R.c, 2), sgn(R.diff, 2)].forEach(v => { const td = document.createElement("td"); td.textContent = v; tr.appendChild(td); });
+    tb.appendChild(tr);
+  });
+  const e4 = rows[4], e12 = rows[12], fifth = rows[1].diff;
+  const synK = commaOf("syn"), pyK = commaOf("pyth");
+  $("fifthText").textContent = `Each pure fifth is ${fmt(fifth, 3)} cents wider than an equal one. After 4 fifths the E is ${fmt(e4.diff, 2)} cents above the equal E (${fmt(4 * fifth, 2)} = 4 × ${fmt(fifth, 3)}) and, at ${frac(e4.n, e4.d)}, ${fmt(cents(big(e4.n, e4.d)) - cents(5 / 4), 2)} cents above the pure third 5/4: ${Math.abs(cents(big(e4.n, e4.d)) - cents(5 / 4) - cents(synK.r)) < 1e-9 ? "that is the syntonic comma" : "NOT the syntonic comma"}. After 12 fifths the B♯ is ${fmt(e12.diff, 3)} cents above C, ${Math.abs(e12.diff - cents(pyK.r)) < 1e-9 ? "the Pythagorean comma" : "NOT the Pythagorean comma"} (12 × ${fmt(fifth, 3)} = ${fmt(12 * fifth, 3)}). The difference between the two commas is ${frac(...red(pyK.n * synK.d, pyK.d * synK.n))} = ${fmt(cents(pyK.r) - cents(synK.r), 3)} cents. Highlighted rows: 4 and 12 fifths.`;
+}
+function renderBudget() {
+  const M = model(INTS.find(i => i.name === "major third"), 60), syn = cents(81 / 80), f = M.it ? (cents(3 / 2) - 700) : 0;
+  const rest = syn - 4 * f;
+  $("budgetText").textContent = `Equal temperament narrows each of the 4 fifths by ${fmt(f, 3)} cents, which takes ${fmt(4 * f, 3)} cents off the Pythagorean third. That leaves ${fmt(syn, 3)} − ${fmt(4 * f, 3)} = ${fmt(rest, 3)} cents, and the equal third is ${fmt(M.gap, 3)} cents above the pure one: ${Math.abs(rest - M.gap) < 1e-9 ? "the two agree to 9 decimals (an identity of the arithmetic, not a measurement)" : "these do NOT match"}. So a piano tuned in equal temperament does not fix the third; it shares out the comma, and what is left is the beat you heard.`;
+}
+
+/* ---- section 5: the whole check ---- */
+$("chkIntro").textContent = `Renders ${INTS.length} intervals × ${BASES.length} lower notes (${BASES.map(noteName).join(", ")}) × 2 tunings = ${INTS.length * BASES.length * 2} sounds offline and measures each. Equal cases pass when the measured rate is within the tolerance of the arithmetic; pure cases pass when no beating is found. Takes some seconds.`;
+$("chkBtn").onclick = async () => {
+  const b = $("chkBtn"); b.disabled = true; const out = $("chkOut");
+  let total = 0, passE = 0, passJ = 0, nE = 0, nJ = 0, worst = 0, worstName = ""; const fails = [];
+  for (const it of INTS) for (const bm of BASES) {
+    const M = model(it, bm), name = `${it.name} on ${noteName(bm)}`;
+    out.textContent = `Measuring ${total + 1} of ${INTS.length * BASES.length * 2}: ${name}...`;
+    const rJ = await measure(M.f1, M.fJ, it.p, it.q, M.bJ), rE = await measure(M.f1, M.fE, it.p, it.q, M.bE);
+    nJ++; nE++; total += 2;
+    if (judgePure(rJ)) passJ++; else fails.push(`${name} (pure)`);
+    if (judgeEqual(M.bE, rE)) { passE++; const rel = Math.abs(rE.rate - M.bE) / M.bE; if (rel > worst) { worst = rel; worstName = name; } } else fails.push(`${name} (equal)`);
+  }
+  out.textContent = `${passE + passJ} of ${total} cases pass: ${passJ} of ${nJ} pure cases show no beating, and ${passE} of ${nE} equal cases measure within tolerance of |p·f1 − q·f2|. Largest relative difference among passing equal cases: ${fmt(worst * 100, 2)}% (${worstName || "none"}). Failures: ${fails.length ? fails.join("; ") : "none"}. Both sides use the same two frequencies, so this checks the audio and the measuring code, not music theory.`;
+  b.disabled = false;
+};
+
+/* ---- weaker published figures (search summaries), kept out of every tally ---- */
+(function () {
+  const rows = [["5/4 = 386.31", cents(5 / 4), 386.31], ["equal third = 400", 400, 400], ["81/80 = 21.51", cents(81 / 80), 21.51]];
+  $("weakCmp").textContent = rows.map(r => `${r[0]} → computed ${fmt(r[1], 3)}, ${Math.abs(Math.round(r[1] * 100) / 100 - r[2]) < 1e-9 ? "rounds to the same" : "does not round to the same"}`).join("; ");
+})();
+
+$("status").textContent = `Press a button to start the sound. Each note is a lower and an upper tone of ${NPART} harmonics (amplitude 1/n), held for ${DUR} seconds.`;
+$("dSR").textContent = SR.toLocaleString("en-US"); $("dDepth").textContent = fmt(DEPTH * 100, 0) + "%"; $("dS0").textContent = SKIP0; $("dS1").textContent = SKIP1;
+$("bud13").textContent = fmt(model(INTS.find(i => i.name === "major third"), 60).gap, 1);
+$("interval").addEventListener("change", () => { stopAll(); const M = cur(); renderWork(M); runMeasure(); });
+$("base").addEventListener("change", () => { stopAll(); const M = cur(); renderWork(M); runMeasure(); renderComma(); });
+renderWork(cur()); renderFifths(); renderBudget(); renderComma(); runMeasure();
+</script>
+</body>
+</html>
