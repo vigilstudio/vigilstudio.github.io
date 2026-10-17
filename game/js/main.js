@@ -2,6 +2,7 @@
 import { figurePose } from "./figure.js";
 import { generateWorld, spawnFor, isBlocked, tileAt, T, worldFingerprint } from "./world.js";
 import { nameFor, colourFor, newSeed, isSeed } from "./names.js";
+import { reportLine, reportText } from "./net/report.js";
 import { createTransport, pickKind, pickTestRelay, pickTestTracker, pickTestMute } from "./net/transport.js";
 import { createPresence } from "./presence.js";
 import { createInput } from "./input.js";
@@ -171,6 +172,7 @@ function leaveRoom() {
   playing = false; net = null; presence = null; talk = null; gather = null; give = null; swap = null; craft = null; beacon = null; quests = null; shades = null; rankNet = null; clockCheck = null; stone = null; renderer.setStone(null); fishing = null; fishView = null; paintFish(null); paintClock(); me.snuffed = false;
   paintShades(true); paintQuests(true); paintBeacon(true); setTalkOpen(false); $("heard").textContent = ""; paintGive(); paintTrade(); paintPack(); paintCraft();
   document.body.classList.remove("playing");
+  $("connline").textContent = ""; $("copystate").textContent = ""; $("copyfallback").hidden = true;
   $("enter").disabled = false;
   $("enter").focus(); // the Leave button just hid; keep keyboard focus on something visible
   save();
@@ -730,7 +732,27 @@ function updateStatus() {
   else line = `No one else in this lantern yet (listening on ${s.relaysOpen} ${s.relaysOpen === 1 ? "relay" : "relays"}, ${net.kind === "both" ? s.open.map(k => PATH_NAME[k]).join(" and ") : PATH_NAME[net.kind] || "relays"}). Others appear here when they enter the same lantern.${net.kind === "both" ? " A player who is on only one of the two ways meets you, but not a player who is only on the other." : " Players meet only others who connected the same way."}`;
   paintPath(s);
   $("status").textContent = line;
+  const cl = reportLine(s, reportCtx());
+  if ($("connline").textContent !== cl) $("connline").textContent = cl;
 }
+// The connection report (js/net/report.js): numbers only. Nothing a peer sent is passed in, only counts.
+function reportCtx() { return { kind: net ? net.kind : "local", lantern: roomNo, seconds: Math.round((performance.now() - joinedAt) / 1000), playersNow: presence ? presence.peers.size : 0 }; }
+let copyTimer = 0;
+$("copyreport").addEventListener("click", async () => {
+  if (!net) return;
+  const text = reportText(net.status(), reportCtx());
+  const say = (t) => { $("copystate").textContent = t; clearTimeout(copyTimer); copyTimer = setTimeout(() => { $("copystate").textContent = ""; }, 6000); };
+  try {
+    if (!navigator.clipboard || typeof navigator.clipboard.writeText !== "function") throw new Error("no clipboard");
+    await navigator.clipboard.writeText(text);
+    $("copyfallback").hidden = true;
+    say("Copied. Paste it where you report how the connection went.");
+  } catch {
+    const box = $("copyfallback");
+    box.value = text; box.hidden = false; box.focus(); box.select();
+    say("Your browser did not allow copying; the text is selected below, copy it by hand.");
+  }
+});
 
 // ---- where the others are: a lobby room apart from the lanterns (js/lobby.js). A page inside a lantern answers a newcomer's
 // question with its lantern number; a page on the landing screen asks for LOOK_S seconds, only when its player presses the button ----
@@ -829,6 +851,7 @@ window.__longWatch = {
   castAt: (x, y) => (fishing ? fishing.cast(x, y) : null), // tests only; the real cast goes through the button and F
   castAhead: () => (fishing ? fishing.castAhead() : null),
   reel: () => (fishing ? fishing.reel() : null),
+  connection: () => ({ line: $("connline").textContent, text: net ? reportText(net.status(), reportCtx()) : "", copyState: $("copystate").textContent, fallback: $("copyfallback").hidden ? "" : $("copyfallback").value }),
   face: (d) => { if (Number.isFinite(d)) { me.d = d; return true; } return false; }, // tests only
   addFuel: (item) => beacon ? beacon.add(item) : null,
   craft: () => ({ inv: { ...inv }, cr: { ...cr }, lamp: held.lamp, info: $("craftinfo").textContent, peerLamps: presence ? [...presence.peers.values()].map(p => ({ id: p.id, lamp: p.lamp | 0 })) : [] }),

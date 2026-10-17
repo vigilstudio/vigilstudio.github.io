@@ -12,7 +12,7 @@
 // on both; that third player sees both, the two of them do not see each other (nothing is relayed). The page says which
 // paths are open. `?net=nostr` or `?net=torrent` pins one path and does not use this wrapper.
 import { emitter, capped } from "./transport.js";
-import { createTrysteroTransport } from "./trystero.js";
+import { createTrysteroTransport, MAX_MET } from "./trystero.js";
 
 export const ORDER = ["nostr", "torrent"];
 export const TRY_MS = 7000;
@@ -27,7 +27,8 @@ export async function createAutoTransport(room, opts = {}) {
   const parts = new Map(); // kind -> transport that started
   const links = new Map(); // peer id -> [kinds this peer is linked on], first link first
   const startedAt = performance.now();
-  let closed = false, first = null;
+  let closed = false, first = null, lost = 0;
+  const metAll = new Set(); // ids of players met on any path (counts only leave this file; capped)
 
   const results = await Promise.allSettled(ORDER.map((kind) => createTrysteroTransport(kind, room, { relay: urlFor(kind), mute: opts.mute })));
   results.forEach((r, i) => { if (r.status === "fulfilled") parts.set(ORDER[i], r.value); else console.error(r.reason); });
@@ -38,14 +39,14 @@ export async function createAutoTransport(room, opts = {}) {
     t.onPeerJoin((id) => {
       const l = links.get(id);
       if (l) { if (!l.includes(kind)) l.push(kind); return; } // already here on the other path: the first link wins
-      links.set(id, [kind]); onJoin.emit(id);
+      links.set(id, [kind]); if (metAll.size < MAX_MET) metAll.add(id); onJoin.emit(id);
     });
     t.onPeerLeave((id) => {
       const l = links.get(id);
       if (!l) return;
       const i = l.indexOf(kind);
       if (i >= 0) l.splice(i, 1);
-      if (!l.length) { links.delete(id); onLeave.emit(id); }
+      if (!l.length) { links.delete(id); lost++; onLeave.emit(id); }
     });
     t.onMessage((m, id) => { if (m && m.k === LINK_KIND) return; onMsg.emit(m, id); }); // link keepalives stop here
   }
@@ -88,6 +89,9 @@ export async function createAutoTransport(room, opts = {}) {
         dropped: onMsg.dropped() + per.reduce((n, s) => n + (s.dropped || 0), 0), rebuilds: per.reduce((n, s) => n + (s.rebuilds || 0), 0),
         history: per.flatMap((s, i) => (s.history || []).map(h => [...h, ORDER[i]])),
         paths, open, path: first, links: { both, single }, peers: links.size,
+        // connection report: per path sockets and links (numbers only), and players met / gone over all paths
+        byPath: Object.fromEntries(ORDER.map((k, i) => [k, { sock: per[i].sock || { tried: per[i].relays, open: per[i].relaysOpen, everOpened: 0 }, met: per[i].met | 0, left: per[i].left | 0, rebuilds: per[i].rebuilds | 0 }])),
+        met: metAll.size, gone: lost,
         exhausted: !open.length && ORDER.every((k) => paths[k] === "unreached"),
       };
     },

@@ -303,6 +303,39 @@ dull ember with two curls of smoke. Reduced motion: no sway, ripple, blink, floa
 path, because that is its place in the game). Cost measured in headless Chromium (software canvas): the draw averages about 1.3 ms a
 frame with a shade on screen. Own drawing, no outside art.
 
+## The connection report and the owner's online test (milestone 27, `js/net/report.js`)
+The game panel has a "Connection" line and a "Copy connection report" button. Both are built by `js/net/report.js` from the
+transport's `status()` and from the player's own lantern number, seconds in the lantern and players here now; nothing else.
+Every figure is read as a whole number clamped to 0..`REPORT_MAX` (9999) and printed inside fixed words, so a string, an address
+or a name that somehow reached `status()` would print as 0, not as itself. Relay and tracker addresses stay inside
+`js/net/trystero.js` (a once-a-second sample, `SAMPLE_MS`, remembers which sockets were ever seen open, as a set of addresses that
+never leaves the closure); only counts leave it. What the text holds: the way (Nostr, BitTorrent, both, or local), lantern number,
+seconds in the lantern, per path relays or trackers tried / open now / never opened / opened and then closed, players here now,
+players met since entering (distinct ids, capped at `MAX_MET` 200), players gone again, links on both ways or one, connections
+rebuilt by the link watchdog, messages dropped in transit, and one sentence that public relays have not been tested by the builders
+(`PUBLIC_PLAY_TESTED_BY_BUILDERS`, checked against the newest CHANGELOG entry in `tests/report.test.mjs`). With a test relay (`?relay=`) a path has
+one address, so "tried" is 1; on the live site it is the number of relays or trackers Trystero chose from its own lists.
+Limits: "never opened" also counts a relay still connecting; a relay that opens and closes inside one sample is counted as never
+opened; failed WebRTC handshakes are not counted (only rebuilds after silence and players who joined and went); the report is
+as good as this page's own view. The button writes to the clipboard only on a click; where the browser refuses, the text appears
+in a read-only box, selected, to copy by hand. Nothing is sent anywhere by the report.
+
+### Owner test checklist (two devices on two networks)
+The aim is evidence from the real network: this has not been done by the builders since milestone 1 (the owner's one test on
+2026-10-15), and not at all for fishing, the lobby, the music stone, trading or the report itself.
+1. Use two devices on two different networks, for example a phone on mobile data and a computer on home wifi (not the same wifi).
+   Open https://vigilstudio.github.io/game/ on both. Do not use `?net=`, `?relay=` or `?tracker=`.
+2. On both, pick the **same lantern** (say Lantern 1; write down the number) and press Enter the island within about a minute of each other.
+3. Wait up to 30 seconds. Note whether each device shows the other under "Players in this lantern" and how long it took.
+4. Walk a little on one device and check the other sees it. Press a gesture or a phrase and check it arrives.
+5. Optional, if time: have both press "Where are the others?" on the landing screen and see whether a lantern count appears; fish at the jetty together; light a beacon together.
+6. On **each** device press "Copy connection report" and paste it into a GitHub issue on https://github.com/vigilstudio/vigilstudio.github.io/issues
+   (one comment per device, with "phone, mobile data" or "computer, home wifi", the lantern number, and whether they met). The report is
+   numbers only; read it before posting.
+7. Read the numbers: relays open of tried on each path (0 of everything means that network blocks the relays); "Players met" 0 with
+   relays open means the signalling worked but no direct link formed (a network that needs a TURN server); "rebuilt" above 0 means a link went silent and was rebuilt.
+8. Leave with the Leave button on one device and check the other shows the player gone and the report counts 1 gone.
+
 ## Signalling from the build sandbox (checked 2026-10-15)
 - Public Nostr relays (relay.damus.io, nos.lol, relay.mostr.pub, purplerelay.com, yabu.me, nostr.data.haus) and
   BitTorrent trackers (tracker.openwebtorrent.com, tracker.webtorrent.dev, tracker.btorrent.xyz) were **not
@@ -359,6 +392,7 @@ game/
   js/net/transport.js   the transport interface, ?net= and ?relay= parsing
   js/net/local.js       BroadcastChannel transport (tests, offline)
   js/net/trystero.js    Trystero transport (nostr, torrent); link watchdog and offer-renewal fix
+  js/net/report.js      the connection report: the "Connection" line and the copied text, numbers only, from status() (pure)
   js/net/auto.js        the default transport: Nostr and BitTorrent at once, one peer list (first link wins, keepalive on the second link)
   vendor/               Trystero 0.25.4 and @noble/secp256k1 3.2.0, with licences
   tests/presence.test.mjs  Playwright: local two-page test, room isolation, real WebRTC via local relay
@@ -382,6 +416,7 @@ game/
   tests/fishing.test.mjs   node checks of the fish, casting, bite, press, shoal and every cap (lamp oil stack, gifts, beacon share, line limits, silent peer) and hostile `fl` messages on fake meshes, then local and WebRTC pages (cast, catch, miss, shoal where no fish live, full stack, gifts, beacon) and reduced motion
   tests/shadows.test.mjs   node checks of the shadow rules (direction, length, cancelling lights, odd numbers, caps) and the flame's bounds, then local pages: a shadow follows another player's lantern, a beacon lit by two players throws shadows on both pages, levels 0 to 2, the plain look, reduced motion, and the frame cost at 375 and 1100 px
   tests/lobby.test.mjs     node checks of the lobby messages, caps and rate limits on fake meshes, then local and WebRTC pages: three pages in two lanterns and one in the lobby (counts 2 and 1, a guess, the pick button, ending by itself, a leaver not counted)
+  tests/report.test.mjs    node checks of the report builder (hostile status, clamping, the untested statement against the CHANGELOG), then local-relay pages: a live relay and a refused tracker counted, the clipboard text equals the page's, no id, name or address in it, a leaver counted once, a refused relay, both refused, a relay closed mid-play, no clipboard, local mode
   tests/loop.mjs           runs test files N times each, one at a time, and prints one exact `name passed/N` line per file (`node game/tests/loop.mjs 5 beacon talk`; no names means every file)
 ```
 URL flags: `?net=auto|local|nostr|torrent` (default auto), `?mute=N` (tests only), `?hour=0..7.99` (pin the night hour), `?relay=ws://127.0.0.1:PORT` and `?tracker=ws://127.0.0.1:PORT` (tests only, loopback pages), `?look=plain|low` (turn the living look off or start it at its lowest level), `?day=N` (pin the keeper's notes' day; loopback pages only), `?shadeclock=N` (shift the shades' clock by N ms; loopback pages only), `?clockskew=N` (the clock check pretends this page's clock is N s off; loopback pages only), `#room=N`.
@@ -389,7 +424,7 @@ URL flags: `?net=auto|local|nostr|torrent` (default auto), `?mute=N` (tests only
 import map and the hash must be recomputed). `window.__longWatch` exposes read-only copies of the world, self and peers for the tests.
 
 ## Testing
-`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs`, `node game/tests/craftgive.test.mjs`, `node game/tests/fishing.test.mjs`, `node game/tests/lobby.test.mjs`, `node game/tests/craft.test.mjs`, `node game/tests/beacon.test.mjs`, `node game/tests/living.test.mjs`, `node game/tests/quests.test.mjs`, `node game/tests/shades.test.mjs`, `node game/tests/rank.test.mjs`, `node game/tests/clock.test.mjs` and the others in `tests/` (add `--local` to skip the WebRTC part,
+`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs`, `node game/tests/craftgive.test.mjs`, `node game/tests/fishing.test.mjs`, `node game/tests/lobby.test.mjs`, `node game/tests/craft.test.mjs`, `node game/tests/beacon.test.mjs`, `node game/tests/living.test.mjs`, `node game/tests/quests.test.mjs`, `node game/tests/shades.test.mjs`, `node game/tests/rank.test.mjs`, `node game/tests/clock.test.mjs`, `node game/tests/report.test.mjs` and the others in `tests/` (add `--local` to skip the WebRTC part,
 `SHOTS=dir` for screenshots), then
 `node tools/page_check.mjs game/`. Every new shared feature gets a check in the test: what one page does,
 the other must see.

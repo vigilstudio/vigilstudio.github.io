@@ -110,6 +110,8 @@ working features.
   "Roadmap reviews"); the dawn and dusk test run 15 times in a row (15/15); `tests/both.test.mjs` now prints both pages' links and
   link history when its link checks fail (it failed once this run, cause not found). Nothing players see changed.
 
+- **27. A connection report.** Done 2026-10-17, local relay and tracker only. A "Connection" line and a "Copy connection report" button in the game panel, numbers only (`js/net/report.js`): per path relays or trackers tried, open now, never opened and opened-then-closed; players met, gone, linked on one or both ways; connections rebuilt; and the sentence that public relays are untested by the builders (`PUBLIC_PLAY_TESTED_BY_BUILDERS`, checked against the CHANGELOG by `tests/report.test.mjs`). No relay address, id or name reaches it. Where the browser refuses the clipboard the text is shown selected in a box. The owner test checklist is in DESIGN.md. Limits: failed WebRTC handshakes are not counted (rebuilds after silence are); a relay open for less than `SAMPLE_MS` 1000 is counted as never opened.
+
 ## Roadmap reviews
 - **2026-10-16 (after milestone 9, 10 increments since the founding).** What the CHANGELOG taught: (1) every shared
   feature reused one pattern that has held up: positions and timings as pure functions of the seed and the UTC clock
@@ -173,7 +175,7 @@ working features.
   Rooms stay at 12 players (`MAX_PEERS` 11 others).
 
 ## Later (in rough order, each one run)
-27. **NEXT: A connection report (network).** A "Connection" line in the game panel, numbers only, from what the page
+27. **Done (see above).** Was: A connection report (network). A "Connection" line in the game panel, numbers only, from what the page
     already holds: for each path, how many relays or trackers are open of how many tried (hosts from the code's own list,
     never from a peer), how many players were met, how many links failed to open or were rebuilt; and a button that copies
     the same numbers as plain text to the player's own clipboard (no peer data in it except counts) so the owner or a
@@ -181,7 +183,7 @@ working features.
     devices on two networks, which lantern, what to copy). Test on local relays: the counts match what the test did, a
     refused relay is counted as refused, nothing from a peer reaches the copied text. The page says plainly whether online
     play over public relays has been tested, from the CHANGELOG.
-28. **Spare relays (network).** Name the Nostr relays and BitTorrent trackers in one list in the code (Trystero's defaults
+28. **NEXT: Spare relays (network).** Name the Nostr relays and BitTorrent trackers in one list in the code (Trystero's defaults
     plus a few free, no-sign-up spares, with where each came from), count each socket's opens and failures, and when fewer
     than 2 relays are open after 10 s, try spares from the list. Test with local relays that refuse, close, or never answer;
     the page shows how many are open. Public relays stay untested from the sandbox; say so.

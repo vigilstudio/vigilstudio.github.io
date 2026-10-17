@@ -15,6 +15,7 @@ const MODULES = {
   nostr: "../../vendor/trystero-0.25.4/nostr/index.mjs",
   torrent: "../../vendor/trystero-0.25.4/torrent/index.mjs",
 };
+export const MAX_MET = 200, SAMPLE_MS = 1000;
 export const STALL_MS = 8000, MIN_GAP_MS = 10000, MAX_REBUILDS = 3, CHECK_MS = 2000;
 
 // Trystero keeps a pool of ready offers and, once one is older than ~57 s, renews it: roll back the pooled
@@ -60,26 +61,33 @@ export async function createTrysteroTransport(kind, room, opts = {}) {
   // Tests only (loopback pages): `mute` seconds during which this side neither sends nor hears anything, like a half-open link.
   const muted = () => !!opts.mute && performance.now() - t0 < opts.mute * 1000;
   const joined = new Map(); // peer id -> when its join event arrived
+  // Connection report (milestone 27): numbers only. `everOpen` holds the relay addresses (from the code's own list or a test
+  // relay, never from a peer) whose socket was seen open by the once-a-second sample; the addresses stay in this closure and
+  // only counts leave it. `met` holds the ids of players met (at most MAX_MET, ids are never exposed), `left` counts leave events.
+  const everOpen = new Set(), met = new Set();
+  let left = 0;
+  const sample = () => { for (const [u, s] of Object.entries(lib.getRelaySockets?.() || {})) if (s && s.readyState === 1) everOpen.add(u); };
   const heard = new Set();  // peer ids we have received at least one message from since they joined
   let r = null, action = null, rebuilds = 0, lastRebuild = -1e9, closed = false, busy = false;
 
   function open() {
     const mine = r = lib.joinRoom(config, room);
     action = r.makeAction("m");
-    r.onPeerJoin = (id) => { if (mine !== r || muted()) return; note("join", id); joined.set(id, performance.now()); onJoin.emit(id); };
-    r.onPeerLeave = (id) => { if (mine !== r) return; note("leave", id); joined.delete(id); heard.delete(id); onLeave.emit(id); };
+    r.onPeerJoin = (id) => { if (mine !== r || muted()) return; note("join", id); joined.set(id, performance.now()); if (met.size < MAX_MET) met.add(id); onJoin.emit(id); };
+    r.onPeerLeave = (id) => { if (mine !== r) return; note("leave", id); left++; joined.delete(id); heard.delete(id); onLeave.emit(id); };
     action.onMessage = (data, ctx) => { if (mine !== r || muted()) return; heard.add(ctx.peerId); onMsg.emit(data, ctx.peerId); };
   }
   async function rebuild() {
     busy = true; rebuilds++; lastRebuild = performance.now();
     const old = r; r = null; // events from the old room object are ignored from here on
-    for (const id of [...joined.keys()]) { note("leave", id); onLeave.emit(id); }
+    for (const id of [...joined.keys()]) { note("leave", id); left++; onLeave.emit(id); }
     joined.clear(); heard.clear();
     try { await old.leave(); } catch { /* already gone */ }
     if (!closed) open();
     busy = false;
   }
   open();
+  const sampler = setInterval(sample, SAMPLE_MS);
   const timer = setInterval(() => {
     if (closed || busy || !r || rebuilds >= MAX_REBUILDS || performance.now() - lastRebuild < MIN_GAP_MS) return;
     const t = performance.now();
@@ -92,9 +100,13 @@ export async function createTrysteroTransport(kind, room, opts = {}) {
     send(msg, peerId) { if (!action || muted()) return; action.send(msg, peerId ? { target: peerId } : undefined).catch(() => {}); },
     onMessage: onMsg.add, onPeerJoin: onJoin.add, onPeerLeave: onLeave.add,
     status() {
+      sample();
       const socks = Object.values(lib.getRelaySockets?.() || {});
-      return { relays: socks.length, relaysOpen: socks.filter(s => s && s.readyState === 1).length, dropped: onMsg.dropped(), rebuilds, history: history.map(h => h.slice()) };
+      const open = socks.filter(s => s && s.readyState === 1).length;
+      // sock: relays/trackers tried, open now, ever seen open (so tried - everOpened never opened: refused or unreachable)
+      return { relays: socks.length, relaysOpen: open, dropped: onMsg.dropped(), rebuilds, history: history.map(h => h.slice()),
+        sock: { tried: socks.length, open, everOpened: everOpen.size }, met: met.size, left };
     },
-    leave() { closed = true; clearInterval(timer); if (r) r.leave().catch(() => {}); r = null; },
+    leave() { closed = true; clearInterval(timer); clearInterval(sampler); if (r) r.leave().catch(() => {}); r = null; },
   };
 }
