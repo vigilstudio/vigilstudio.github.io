@@ -24,6 +24,8 @@ The owner asked for a multiplayer online RPG, built piece by piece and evolving 
   servers it uses; the game itself collects nothing (never write "nothing is collected" without that qualifier).
   The world is generated from a seed, so everyone sees the same world. It also says plainly whether online play over
   the real relays has been tested, and every limit it states (players per room, range) comes from a constant in code.
+  Any past online test is credited as the record says (the owner, between a phone and a computer, before milestone
+  2), never to the builders or a run (2026-10-18 00:48: the page said the builders did it, review must-fix).
 - **Secure against other players.** Every message from a peer is hostile until validated: known kind, expected
   fields, numbers finite and clamped, no free strings. Cap message size, peers per room and messages per second per
   peer; drop the excess. Never build HTML from peer data, never navigate, fetch, import or open anything a peer named.

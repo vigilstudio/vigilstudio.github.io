@@ -105,15 +105,15 @@ Habits that have proven themselves. Follow them unless the run has a good reason
   '^-[^-].*(untested|not tested|unverified|not independent|clocks agree|from memory|unknown)'` and restores each
   printed caveat or names it in the review brief with evidence it is no longer true; a caveat the record (CHANGELOG,
   Direction) contradicts is reworded, not copied (promoted from an experiment: six runs, no dropped caveat in review).
+- The game tester appends each file's pass count to `tester.log` in its scratchpad as it gets it; the chair's brief
+  names that path and, without a full hand-back, credits only what the log shows and lists the rest as not re-run
+  (promoted from an experiment: six runs, no results lost outright; 10-18 00:48 the slow tester logged 5 files).
 
 ## Experiments
 
 Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would show it helped.`
 
-- (started 2026-10-17) The game tester appends each test file's pass count, as it gets it, to `tester.log` in its
-  scratchpad, and the chair's brief gives that path; when no hand-back arrives, the chair credits only what the log
-  shows. Check: over about 6 runs, no tester's results are lost outright (13:22: the report never arrived, so the
-  chair re-ran three files and credited none; earlier thin or interim hand-backs too).
+- None running; the next reflector may add one.
 
 ## Proposals for the owner
 
@@ -131,7 +131,9 @@ Changes only the owner can make to the routine. The owner can delete a line once
   and again 03:15 although the Practice says so). Until then, the vigil-profile skill could say it (next reflector).
 - (2026-10-16) A time budget for the game builder and tester, set in the routine (`game/tests/loop.mjs` already
   prints exact pass counts). Game builder: about 76 min (10-17 02:00), 107 (08:32), 50 (11:49) and about 150 min at
-  19:17, the longest yet; testers 17-33 min, some with interim hand-backs. Stop-hook reminders about uncommitted
+  19:17, the longest yet; testers 17-33 min, some with interim hand-backs. At 10-18 00:48 the Haiku tester logged
+  only 5 of about 25 files in the whole run: a Sonnet tester, or the chair running loop.mjs over every file as a
+  script, would credit them all. Stop-hook reminders about uncommitted
   changes are noise mid-run (the chair commits only at the end; every run since 08:32, all of 19:17); the routine
   could turn that hook off until then.
 - (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (about 2 h). Another run pushed to main mid-run
@@ -155,13 +157,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-16: Direction updated; The Shadow at Alexandria makes the first short story, so it leaves the list.
-- 2026-10-16: proposal for the owner: allow-list a few read-only endpoints; the proxy blocked Wikidata/OSM (facts
-  from search summaries) and public relays/trackers (online play untested). Not acted on: talk.test cause found and
-  fixed by the tester (background page frames); watch whether it stays green.
-- 2026-10-16: caveat experiment judged (five runs) and deleted: the prose rule failed its check three runs running
-  (17:00, 19:32, 21:04: the game summary lost its online-play caveat, review only); replaced by a new experiment, a
-  chair-run grep of removed caveat words in all three diffs before review.
 - 2026-10-16: vigil-game skill now has testers record their test changes and new findings in the run's CHANGELOG
   entry, and the Workbench sentence end with the online-play status; review found the world.test fix, the 0.9 s
   stall and the summary caveat missing. Not acted on: parallel builders ran a third time with no clash, run about
@@ -264,3 +259,11 @@ Changes only the owner can make to the routine. The owner can delete a line once
   work (23:27). Not acted on: review's three wording fixes (Vincenty/Karney, 25 for 24 tests, a flake count; the
   status-words and counts practices already ask); tester-log experiment not judged (five runs, full 24/24 report,
   2037 checks this time); game builder about 44 min; no overlapping run.
+- 2026-10-18: tester-log experiment judged (six runs) and promoted to Practices: no tester results were lost outright;
+  at 00:48 the slow tester's log let the chair credit 5 files. Experiments now empty.
+- 2026-10-18: vigil-game skill now credits past online tests as the record says (the owner, before milestone 2);
+  00:48 review's must-fix: the game page said the builders did an early online test.
+- 2026-10-18: game-loop proposal updated: the Haiku tester logged only 5 of about 25 files (Sonnet tester or a
+  scripted loop.mjs run proposed). Not acted on: CHROME unset again, set by hand (practice exists); piece filter
+  failed 9 audio cases, fixed by its own tests; profile pruned 3 drafts at 30 (proposal stands); toy avoided the
+  sixth-press payoff as briefed; review's four wording notes (status-words practice).
