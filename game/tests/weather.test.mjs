@@ -248,8 +248,9 @@ try {
     ok(ga.list.length >= 1 && gb.list.length === ga.list.length, `in rain both pages show the same ${ga.list.length} shades (${gb.list.length} on the second; clock ${((ga.now - sl * SLOT_MS) / 1000).toFixed(1)} s into slot ${sl}, ${shadeCount(SEED, sl)} due)`);
     ok(near(ga, 0.8) && near(gb, 0.8), "in rain both pages draw each shade where the rules put it at four fifths of the usual pace");
     ok(near(gd, 1) && !near(gd, 0.8), "with clear weather the same moment shows the shades at the usual pace");
-    const d2 = Math.hypot(ga.list[0].x - gd.list.find(s => s.k === ga.list[0].k).x, ga.list[0].y - gd.list.find(s => s.k === ga.list[0].k).y);
-    ok(d2 > 1, `so the rainy shade has not come as far (${d2.toFixed(1)} tiles behind the dry one 20 s after arriving)`);
+    // compare the two shades at one and the same moment (the dry page's clock was read a little later than the rainy one's)
+    const dryAt = shadeAt(world, ga.now, ga.list[0].k, 1), d2 = dryAt ? Math.hypot(ga.list[0].x - dryAt.x, ga.list[0].y - dryAt.y) : 0;
+    ok(d2 > 1, `so the rainy shade has not come as far (${d2.toFixed(1)} tiles behind the dry one at the same moment, 20 s after arriving; the pages' clocks read ${((gd.now - ga.now) / 1000).toFixed(1)} s apart)`);
   }
 } finally {
   ok(errors.length === 0, `no console errors${errors.length ? ": " + errors.slice(0, 3).join(" | ") : ""}`);
