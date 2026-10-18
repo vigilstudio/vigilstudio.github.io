@@ -9,7 +9,8 @@
 //   beacon   a beacon lit after you added fuel to it, together with another player
 //   note     a keeper's note was finished after you added to it, together with another player
 //   stone    the music stone glowed after you played one note of its tune with two other players
-// A deed is counted once (same key), a gift at most once every 4 s, a relight at most once every 10 s and a stone glow at most once every 30 s, and the
+//   welcome  you have a rank and stood beside a player who has none yet for a few seconds (js/welcome.js; once per newcomer per visit)
+// A deed is counted once (same key), a gift at most once every 4 s, a relight at most once every 10 s and a stone glow at most once every 30 s, a welcome at most once every 30 s, and the
 // points stop at MAX_POINTS. Ranks come from the points; the number told to the room is the rank, 0 to MAX_RANK.
 //
 // Message (a number, never text), to everyone:
@@ -23,7 +24,7 @@ export const THRESHOLDS = [0, 3, 10, 25, 60]; // points needed for rank 0, 1, 2,
 export const MAX_RANK = TITLES.length - 1;
 export const MAX_POINTS = 100000;
 export const MAX_SEEN = 500;                   // deed keys remembered per visit; a full list refuses new ones, it never forgets old ones
-export const GAPS_MS = { relight: 10000, gift: 4000, shade: 0, beacon: 0, note: 0, stone: 30000 };
+export const GAPS_MS = { relight: 10000, gift: 4000, shade: 0, beacon: 0, note: 0, stone: 30000, welcome: 30000 };
 export const DEEDS = Object.keys(GAPS_MS);
 export const RESEND_MS = 5000;
 

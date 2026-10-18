@@ -103,7 +103,7 @@ export function createRenderer(canvas, world, opts = {}) {
   let tracksOn = !plain && opts.tracks !== false; // `?tracks=off` (tests, measuring) leaves footprints and wakes out
   const tracks = createTracks(), kindAt = (x, y) => { const t = tileAt(world, x, y); return t === T.SAND ? "sand" : t === T.MEADOW ? "meadow" : t === T.SHALLOW ? "wake" : null; };
   let drawnMarks = [], stressN = 0; // stressN: tests only, a fixed crowd of made-up marks round the camera to measure the worst case
-  let shadowList = [], lastFlame = null, stoneView = null;
+  let shadowList = [], lastFlame = null, stoneView = null, welcomeMark = null, welcomeShown = false;
   const samples = new Float32Array(240), frames = new Float32Array(240); let nSamp = 0, prevT = 0, drawCalls = 0;
   let nameDraw = [], flyCount = 0, mistCount = 0, dropCount = 0, lastSky = null, lastGlow = null;
   // One soft blob of mist, painted once and drawn scaled (cheap: no gradient is built per frame).
@@ -653,6 +653,15 @@ export function createRenderer(canvas, world, opts = {}) {
     // Arrows at the screen edge toward players who are off screen.
     lastArrows = edgeArrows(me, peers.values(), tile, W, H, 22 * dpr);
     for (const a of lastArrows) drawArrow(g, a, fontPx, dpr);
+    welcomeShown = false;
+    if (welcomeMark) { // a soft gold ring toward the nearest player with a rank (milestone 34), steady under reduced motion
+      const wa = lastArrows.find(a => a.id === welcomeMark.id);
+      const pulse = reduce ? 0.5 : 0.5 + 0.5 * Math.sin(t / 450);
+      g.save(); g.lineWidth = 3 * dpr; g.strokeStyle = `rgba(255,211,107,${0.45 + 0.4 * pulse})`;
+      if (wa) { g.beginPath(); g.arc(wa.x, wa.y, (15 + 3 * pulse) * dpr, 0, Math.PI * 2); g.stroke(); welcomeShown = true; }
+      else { const wx = welcomeMark.x * tile - camX, wy = welcomeMark.y * tile - camY; g.beginPath(); g.arc(wx, wy, tile * (0.75 + 0.1 * pulse), 0, Math.PI * 2); g.stroke(); welcomeShown = true; }
+      g.restore();
+    }
 
     if (stick.on) {
       g.strokeStyle = "rgba(255,243,214,0.5)"; g.lineWidth = 2 * dpr;
@@ -662,7 +671,7 @@ export function createRenderer(canvas, world, opts = {}) {
     }
   }
 
-  return { draw, resize, burst, setStone: (v) => { stoneView = v; }, stoneSeen: () => !!stoneView, arrows: () => lastArrows.map(a => ({ id: a.id, dist: a.dist, ang: a.ang })), lights: () => lastLights.map(l => ({ ...l })), stats, setShadows: (on) => { shadowsOn = !!on && !plain; }, setTracks: (on) => { tracksOn = !!on && !plain; }, setGlitter: (on) => { glitterOn = !!on && !plain; }, stressTracks: (n) => { stressN = Math.max(0, Math.min(600, n | 0)); }, setLevel: (l) => gov.set(Math.max(0, Math.min(2, l | 0))) };
+  return { draw, resize, burst, setWelcome: (v) => { welcomeMark = v; }, welcomeShown: () => welcomeShown, setStone: (v) => { stoneView = v; }, stoneSeen: () => !!stoneView, arrows: () => lastArrows.map(a => ({ id: a.id, dist: a.dist, ang: a.ang })), lights: () => lastLights.map(l => ({ ...l })), stats, setShadows: (on) => { shadowsOn = !!on && !plain; }, setTracks: (on) => { tracksOn = !!on && !plain; }, setGlitter: (on) => { glitterOn = !!on && !plain; }, stressTracks: (n) => { stressN = Math.max(0, Math.min(600, n | 0)); }, setLevel: (l) => gov.set(Math.max(0, Math.min(2, l | 0))) };
 }
 
 // The lit lighthouse: a warm pool on the ground, a bright lamp at the top of the tower and two long beams that turn

@@ -63,7 +63,7 @@ console.log("# rank, in node");
     ok(r.credit("relight", "x") && !r.credit("relight", "y") && r.credit("shade", "k") , `a relight is limited to one every ${GAPS_MS.relight / 1000} s, other kinds are not held up by it`);
     r.newVisit();
     ok(r.seenCount() === 0 && r.credit("gift", "a") && r.points === 9, "a new visit forgets the keys (and the gaps); the points stay");
-    ok(DEEDS.join() === Object.keys(GAPS_MS).join() && DEEDS.length === 6, "six kinds of deed");
+    ok(DEEDS.join() === Object.keys(GAPS_MS).join() && DEEDS.length === 7, "seven kinds of deed");
     clock.t += 1000; ok(r.credit("stone", "1.1") && !r.credit("stone", "1.2") && r.credit("note", "zz"), `a stone glow earns a point, a second within ${GAPS_MS.stone / 1000} s does not, other kinds are not held up`);
     clock.t += GAPS_MS.stone; ok(r.credit("stone", "1.3"), "after the gap another stone glow counts");
   }

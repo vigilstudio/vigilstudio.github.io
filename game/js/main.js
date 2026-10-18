@@ -19,6 +19,7 @@ import { createGive, GIVE_RANGE } from "./give.js";
 import { createSwap } from "./swap.js";
 import { cleanSave, adoptSave, SOFT_STACK, CRAFTED, LAMP_KEYS, ITEMS } from "./inventory.js";
 import { createFlame, FLAME_RANGE } from "./flame.js";
+import { createWelcome, WELCOME_R, WELCOME_S } from "./welcome.js";
 import { createBeacons, FLAME_FUEL, BEACON_NEED, BEACON_RANGE, LIT_RADIUS, MIN_PLAYERS, MAX_OWN, WORTH } from "./beacon.js";
 import { createQuests, noteText, pickDay, shareCap, MIN_PLAYERS as NOTE_PLAYERS } from "./quests.js";
 import { createShades, pickClockOffset, nextWaveIn, shadeCount, slotOf, SHADE_NEED, MIN_PLAYERS as SHADE_PLAYERS, EMBER_TILES, SNUFF_S, SAFE_FRACTION, MAX_SHARE as SHADE_CAP } from "./shades.js";
@@ -119,7 +120,7 @@ const pinnedWeather = pickWeather(location.search); // ?weather=clear|mist|rain 
 const lightNow = () => lightFor(pinnedHour ?? hourAt(Date.now()));
 let lastHud = 0, lastMap = 0, mapOn = true;
 const tapCounts = {};
-let flame = null, stone = null, fishing = null, fishView = null, rankNet = null, net = null, presence = null, talk = null, gather = null, give = null, swap = null, craft = null, beacon = null, quests = null, shades = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
+let welcome = null, welcomeView = { mark: null, helping: false }, flame = null, stone = null, fishing = null, fishView = null, rankNet = null, net = null, presence = null, talk = null, gather = null, give = null, swap = null, craft = null, beacon = null, quests = null, shades = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
 const input = createInput(canvas, () => playing);
 
 async function enter() {
@@ -146,7 +147,7 @@ async function enter() {
   flame = createFlame(net, me, presence.peers, beacon, beaconList.length, { onEvent: flameEvent });
   quests = createQuests(net, world, me, presence.peers, { onEvent: questEvent, beacons: beaconList.length, day: testDay });
   shades = createShades(net, world, me, presence.peers, { onEvent: shadeEvent, clock: shadeNow, paceFor: (slot) => shadePaceAt(world.seed, slot, pinnedWeather), reachFor: shadeReach, safeAt: shadeSafe, holdOut: shadeHold });
-  rank.newVisit(); baseline.clear(); rankNet = createRankNet(net, me, presence.peers, rank); paintRank(true);
+  rank.newVisit(); baseline.clear(); rankNet = createRankNet(net, me, presence.peers, rank); welcome = createWelcome(me, presence.peers, rank, { onEvent: () => { lastWelcomeText = null; } }); welcomeView = { mark: null, helping: false }; renderer.setWelcome(null); paintRank(true);
   clockCheck = createClockCheck(net, presence.peers, { clock: () => Date.now() + clockSkew * 1000 }); paintClock();
   stone = createStone(net, world, me, presence.peers, { clock: shadeNow, onEvent: stoneEvent }); $("stoneinfo").textContent = ""; paintStone(true);
   me.snuffed = false; $("shadeinfo").textContent = ""; lastShadeKey = ""; paintShades(true);
@@ -173,7 +174,7 @@ function leaveRoom() {
   if (swap) swap.cancel(); // an offer of mine that is still open: the item set aside goes back to the pack
   fishing.leave(); presence.leave(); net.leave();
   strides.clear(); setSteps(false); steps.close();
-  playing = false; net = null; presence = null; talk = null; gather = null; give = null; swap = null; craft = null; beacon = null; flame = null; me.flame = false; quests = null; shades = null; rankNet = null; clockCheck = null; stone = null; renderer.setStone(null); fishing = null; fishView = null; paintFish(null); paintClock(); me.snuffed = false;
+  playing = false; net = null; presence = null; talk = null; gather = null; give = null; swap = null; craft = null; beacon = null; flame = null; me.flame = false; quests = null; shades = null; rankNet = null; welcome = null; welcomeView = { mark: null, helping: false }; renderer.setWelcome(null); clockCheck = null; stone = null; renderer.setStone(null); fishing = null; fishView = null; paintFish(null); paintClock(); me.snuffed = false;
   paintShades(true); paintQuests(true); paintBeacon(true); paintFlame(true); setTalkOpen(false); $("heard").textContent = ""; paintGive(); paintTrade(); paintPack(); paintCraft();
   document.body.classList.remove("playing");
   $("connline").textContent = ""; $("copystate").textContent = ""; $("copyfallback").hidden = true;
@@ -214,6 +215,7 @@ function frame(t) {
   beam.update(watchIsKept(), dt, reducedMotion());
   shades.tick(dt);
   rankNet.tick();
+  welcomeView = welcome.tick(); renderer.setWelcome(welcomeView.mark);
   renderer.setStone(stone ? { x: stone.spot.x, y: stone.spot.y, glow: stone.glow(), recent: stone.recent() } : null);
   watchBaselines();
   paintCooldowns(t);
@@ -225,6 +227,7 @@ function frame(t) {
   paintFish(fishView);
   paintShades();
   paintRank();
+  paintWelcomeNote();
   paintStone();
   paintBeacon();
   paintFlame();
@@ -496,7 +499,7 @@ function paintShades(force) {
   $("shadestate").textContent = lines.join(" ");
 }
 // ---- rank: the lamplighter rank, earned only by helping others (see rank.js) ----
-const DEED_WORDS = { relight: "relighting a friend's lantern", shade: "driving off a shade together", gift: "a gift that arrived", beacon: "lighting a beacon together", note: "finishing a keeper's note together", stone: "playing the music stone's tune together" };
+const DEED_WORDS = { relight: "relighting a friend's lantern", shade: "driving off a shade together", gift: "a gift that arrived", beacon: "lighting a beacon together", note: "finishing a keeper's note together", stone: "playing the music stone's tune together", welcome: "welcoming a newcomer" };
 function rankEvent(type, a, b) {
   if (type === "deed") $("rankinfo").textContent = `A point for ${DEED_WORDS[a]}.`;
   else if (type === "rank") $("rankinfo").textContent = `You are now a ${titleFor(a)}. Thank you for helping.`;
@@ -513,6 +516,16 @@ function paintRank(force) {
   const r = rank.rank, next = pointsToNext(rank.points);
   $("rankstate").textContent = (r ? `Your rank: ${titleFor(r)}. ` : "You have no rank yet. ") + `Help points: ${rank.points}.` + (next ? ` ${next} more for the next rank.` : " That is the highest rank.");
   if (presence) updatePeers();
+}
+// The welcome note (milestone 34): fixed words only, from distances this browser works out itself.
+let lastWelcomeText = null;
+function paintWelcomeNote() {
+  const m = welcomeView.mark;
+  const text = welcomeView.helping ? "A player with no rank yet is beside you. Stay close for a few seconds and you may earn a help point (a welcome point comes at most every 30 seconds)."
+    : m ? (m.near ? "You are beside a player with a rank. Stay close for a few seconds." : "A gold ring points toward the nearest player with a rank. Go and stand beside them.") : "";
+  if (text === lastWelcomeText) return;
+  lastWelcomeText = text;
+  $("welcomenote").textContent = text;
 }
 // ---- crafting: wicks and lanterns; ingredients are used up, and a full stack refuses ----
 const craftBox = $("craftbtns"), holdBox = $("holdbtns");
@@ -922,6 +935,7 @@ window.__longWatch = {
   connection: () => ({ line: $("connline").textContent, text: net ? reportText(net.status(), reportCtx()) : "", copyState: $("copystate").textContent, fallback: $("copyfallback").hidden ? "" : $("copyfallback").value }),
   face: (d) => { if (Number.isFinite(d)) { me.d = d; return true; } return false; }, // tests only
   flame: () => flame ? { held: flame.held, incoming: flame.incoming, outgoing: flame.outgoing, expecting: flame.expecting, near: beacon ? beacon.near() : -1, panel: !$("flame").hidden, state: $("flamestate").textContent, info: $("flameinfo").textContent, meFlag: !!me.flame, peerFlags: presence ? [...presence.peers.values()].map(p => ({ id: p.id, flame: !!p.flame })) : [], buttons: { take: !$("flametake").hidden && !$("flametake").disabled, give: !$("flamegive").hidden && !$("flamegive").disabled, light: !$("flamelight").hidden && !$("flamelight").disabled, yes: !$("flamebox").hidden } } : null,
+  welcome: () => ({ mark: welcomeView.mark ? { id: welcomeView.mark.id, x: welcomeView.mark.x, y: welcomeView.mark.y, dist: welcomeView.mark.dist, near: welcomeView.mark.near } : null, helping: welcomeView.helping, timed: welcome ? welcome.timed() : 0, note: $("welcomenote").textContent, ring: renderer.welcomeShown(), radius: WELCOME_R, seconds: WELCOME_S }),
   flameTake: () => flame ? flame.take() : null,
   flameOffer: () => !!flame && flame.offer(),
   flameAccept: () => !!flame && flame.accept(),
