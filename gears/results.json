@@ -1,0 +1,348 @@
+{
+ "gearChecks": 45,
+ "gearChecksFailed": 0,
+ "brocotTargets": 40,
+ "brocotAgree": 40,
+ "sweepTargets": 298,
+ "sweepAgree": 298,
+ "breaks": [
+  {
+   "name": "delete one tooth of A2 -> teeth count",
+   "failed": true,
+   "example": "gear A2: teeth recounted from the outline (53 counted, 54 expected)"
+  },
+  {
+   "name": "push one tip vertex out 0.3 mm -> tip radius",
+   "failed": true,
+   "example": "gear A1: tip radius (15.300 mm measured, 15.000 expected)"
+  },
+  {
+   "name": "widen every tooth of V by 10 % -> thickness at pitch circle",
+   "failed": true,
+   "example": "gear V: tooth thickness at the pitch circle (half the circular pitch) (2.590 mm measured, 2.356 expected, spread 0.0013)"
+  },
+  {
+   "name": "change V pitch circle r 18 -> 18.5 in the file",
+   "failed": true,
+   "example": "gear V: pitch circle in the file equals module x teeth / 2 (18.5 read, 18 expected)"
+  },
+  {
+   "name": "move gear V 0.5 mm in the meshed drawing -> centre distance",
+   "failed": true,
+   "example": "mesh E-V: centre distance equals module x (z1 + z2) / 2 (47.750 mm read, 47.250 expected)"
+  },
+  {
+   "name": "move A3 off A2's centre -> one shaft",
+   "failed": true,
+   "example": "train A: A3 sits on A2's centre (one shaft) (centres 104,50 and 105,50)"
+  },
+  {
+   "name": "delete one tooth of V -> train B exact ratio",
+   "failed": true,
+   "example": "train B: ratio from recounted teeth equals 13/8 as an exact fraction (39/23 = 1.695652)"
+  },
+  {
+   "name": "contact ratio closed form with a stray cos(alpha)",
+   "failed": true,
+   "example": "mesh A1-A2: contact ratio, closed form against walking the line of action (1.7552 closed, 1.6493 walked)"
+  },
+  {
+   "name": "12-tooth pinion on 36 teeth would interfere",
+   "failed": true,
+   "example": "margins -0.67 and 6.09 mm"
+  },
+  {
+   "name": "Stern-Brocot that always takes the lower neighbour",
+   "failed": true,
+   "example": "8 of 40 target/bound pairs disagree with brute force"
+  },
+  {
+   "name": "Stern-Brocot run with bound N-1 compared against brute force at N",
+   "failed": true,
+   "example": "3 of 40 pairs disagree"
+  }
+ ],
+ "allBroke": true,
+ "bfRows": [
+  {
+   "t": "3652564/2247008",
+   "N": 8,
+   "sb": "8/5",
+   "bf": "8/5",
+   "ok": true
+  },
+  {
+   "t": "3652564/2247008",
+   "N": 13,
+   "sb": "13/8",
+   "bf": "13/8",
+   "ok": true
+  },
+  {
+   "t": "3652564/2247008",
+   "N": 20,
+   "sb": "13/8",
+   "bf": "13/8",
+   "ok": true
+  },
+  {
+   "t": "3652564/2247008",
+   "N": 40,
+   "sb": "13/8",
+   "bf": "13/8",
+   "ok": true
+  },
+  {
+   "t": "3652564/2247008",
+   "N": 60,
+   "sb": "13/8",
+   "bf": "13/8",
+   "ok": true
+  },
+  {
+   "t": "3652564/2247008",
+   "N": 100,
+   "sb": "13/8",
+   "bf": "13/8",
+   "ok": true
+  },
+  {
+   "t": "365242200/29530589",
+   "N": 13,
+   "sb": "12",
+   "bf": "12",
+   "ok": true
+  },
+  {
+   "t": "365242200/29530589",
+   "N": 20,
+   "sb": "12",
+   "bf": "12",
+   "ok": true
+  },
+  {
+   "t": "365242200/29530589",
+   "N": 40,
+   "sb": "37/3",
+   "bf": "37/3",
+   "ok": true
+  },
+  {
+   "t": "365242200/29530589",
+   "N": 60,
+   "sb": "37/3",
+   "bf": "37/3",
+   "ok": true
+  },
+  {
+   "t": "365242200/29530589",
+   "N": 100,
+   "sb": "99/8",
+   "bf": "99/8",
+   "ok": true
+  },
+  {
+   "t": "1/1",
+   "N": 8,
+   "sb": "1",
+   "bf": "1",
+   "ok": true
+  },
+  {
+   "t": "1/1",
+   "N": 13,
+   "sb": "1",
+   "bf": "1",
+   "ok": true
+  },
+  {
+   "t": "1/1",
+   "N": 20,
+   "sb": "1",
+   "bf": "1",
+   "ok": true
+  },
+  {
+   "t": "1/1",
+   "N": 40,
+   "sb": "1",
+   "bf": "1",
+   "ok": true
+  },
+  {
+   "t": "1/1",
+   "N": 60,
+   "sb": "1",
+   "bf": "1",
+   "ok": true
+  },
+  {
+   "t": "1/1",
+   "N": 100,
+   "sb": "1",
+   "bf": "1",
+   "ok": true
+  },
+  {
+   "t": "314159265/100000000",
+   "N": 8,
+   "sb": "3",
+   "bf": "3",
+   "ok": true
+  },
+  {
+   "t": "314159265/100000000",
+   "N": 13,
+   "sb": "13/4",
+   "bf": "13/4",
+   "ok": true
+  },
+  {
+   "t": "314159265/100000000",
+   "N": 20,
+   "sb": "19/6",
+   "bf": "19/6",
+   "ok": true
+  },
+  {
+   "t": "314159265/100000000",
+   "N": 40,
+   "sb": "22/7",
+   "bf": "22/7",
+   "ok": true
+  },
+  {
+   "t": "314159265/100000000",
+   "N": 60,
+   "sb": "22/7",
+   "bf": "22/7",
+   "ok": true
+  },
+  {
+   "t": "314159265/100000000",
+   "N": 100,
+   "sb": "22/7",
+   "bf": "22/7",
+   "ok": true
+  },
+  {
+   "t": "1414213562/1000000000",
+   "N": 8,
+   "sb": "7/5",
+   "bf": "7/5",
+   "ok": true
+  },
+  {
+   "t": "1414213562/1000000000",
+   "N": 13,
+   "sb": "7/5",
+   "bf": "7/5",
+   "ok": true
+  },
+  {
+   "t": "1414213562/1000000000",
+   "N": 20,
+   "sb": "17/12",
+   "bf": "17/12",
+   "ok": true
+  },
+  {
+   "t": "1414213562/1000000000",
+   "N": 40,
+   "sb": "24/17",
+   "bf": "24/17",
+   "ok": true
+  },
+  {
+   "t": "1414213562/1000000000",
+   "N": 60,
+   "sb": "41/29",
+   "bf": "41/29",
+   "ok": true
+  },
+  {
+   "t": "1414213562/1000000000",
+   "N": 100,
+   "sb": "99/70",
+   "bf": "99/70",
+   "ok": true
+  },
+  {
+   "t": "12/1",
+   "N": 13,
+   "sb": "12",
+   "bf": "12",
+   "ok": true
+  },
+  {
+   "t": "12/1",
+   "N": 20,
+   "sb": "12",
+   "bf": "12",
+   "ok": true
+  },
+  {
+   "t": "12/1",
+   "N": 40,
+   "sb": "12",
+   "bf": "12",
+   "ok": true
+  },
+  {
+   "t": "12/1",
+   "N": 60,
+   "sb": "12",
+   "bf": "12",
+   "ok": true
+  },
+  {
+   "t": "12/1",
+   "N": 100,
+   "sb": "12",
+   "bf": "12",
+   "ok": true
+  },
+  {
+   "t": "7/3",
+   "N": 8,
+   "sb": "7/3",
+   "bf": "7/3",
+   "ok": true
+  },
+  {
+   "t": "7/3",
+   "N": 13,
+   "sb": "7/3",
+   "bf": "7/3",
+   "ok": true
+  },
+  {
+   "t": "7/3",
+   "N": 20,
+   "sb": "7/3",
+   "bf": "7/3",
+   "ok": true
+  },
+  {
+   "t": "7/3",
+   "N": 40,
+   "sb": "7/3",
+   "bf": "7/3",
+   "ok": true
+  },
+  {
+   "t": "7/3",
+   "N": 60,
+   "sb": "7/3",
+   "bf": "7/3",
+   "ok": true
+  },
+  {
+   "t": "7/3",
+   "N": 100,
+   "sb": "7/3",
+   "bf": "7/3",
+   "ok": true
+  }
+ ]
+}

@@ -2,7 +2,7 @@
 // visible part is scaled up with a camera on the local player, avatars are drawn, and a night layer
 // with a pool of lantern light around every player goes on top.
 import { figurePose } from "./figure.js";
-import { T, LANDMARK_NAMES, tileAt } from "./world.js";
+import { T, LANDMARK_NAMES, tileAt, hash3 } from "./world.js";
 import { KIND_NAMES } from "./resources.js";
 import { PHRASES, EMOTES } from "./talk.js";
 import { edgeArrows } from "./arrows.js";
@@ -13,6 +13,7 @@ import { EMBER_TILES, SHADE_NEED } from "./shades.js";
 import { classify, D, EDGE, phaseOf, sway, foamState, sparkle, moonAt, starAlpha, STARS, fireflies, softStops, createGovernor } from "./living.js";
 import { CASTERS_MAX, shadowOf, keepDarkest, flameFlicker } from "./shadows.js";
 import { glowAt, GLOW_POOL } from "./skyglow.js";
+import { STREAK_CAP, MOON_CAP, lightStreaks, moonStreaks } from "./glitter.js";
 import { createTracks, MARKS_DRAWN, footAlpha, wakeRing } from "./tracks.js";
 import { RAIN_DROPS, MIST_BLOBS, MAX_MIST, rainDrops, mistBanks, nameAlpha } from "./weather.js";
 
@@ -97,6 +98,8 @@ export function createRenderer(canvas, world, opts = {}) {
   const living = classify(world), gov = createGovernor(opts.look === "low" ? 0 : 2);
   const plain = opts.look === "plain";
   let shadowsOn = !plain && opts.shadows !== false; // `?shadows=off` (tests, measuring) leaves the shadows out
+  let glitterOn = !plain && opts.glitter !== false; // `?glitter=off` (tests, measuring) leaves the light on the water out
+  let glitterShown = [], glitterMoon = 0;
   let tracksOn = !plain && opts.tracks !== false; // `?tracks=off` (tests, measuring) leaves footprints and wakes out
   const tracks = createTracks(), kindAt = (x, y) => { const t = tileAt(world, x, y); return t === T.SAND ? "sand" : t === T.MEADOW ? "meadow" : t === T.SHALLOW ? "wake" : null; };
   let drawnMarks = [], stressN = 0; // stressN: tests only, a fixed crowd of made-up marks round the camera to measure the worst case
@@ -183,6 +186,37 @@ export function createRenderer(canvas, world, opts = {}) {
         g.beginPath(); g.ellipse(sx, sy, tile * 0.115, tile * 0.065, m.ang, 0, Math.PI * 2); g.fill();
       }
     }
+  }
+
+  // ---- light on the water (milestone 33): lanterns, lit beacons and the lit lighthouse lay short wavering streaks on the water
+  // near them, and the moon lays a path where it stands in the sky strip. Worked out here from the lights this browser already
+  // holds; nothing is sent. Drawn in the additive pass, so it adds light and never darkens a player or a path. A streak
+  // too close to a player is left out so a figure wading in the shallows stays clear. Level 0: none; level 1 and 2: up to
+  // STREAK_CAP. Reduced motion keeps the streaks, steady. ----
+  const isWaterTile = (x, y) => { const k = tileAt(world, x, y); return k === T.DEEP || k === T.SHALLOW; };
+  const waterNum = (x, y) => hash3(x, y, world.seed + 523);
+  function drawGlitter(t, reduce, level, camX, camY, tile, W, H, me, all, fires, watch, lt, env, dpr) {
+    glitterShown = []; glitterMoon = 0;
+    if (!glitterOn || level < 1) return;
+    const cap = STREAK_CAP[level], view = { x0: Math.max(0, Math.floor(camX / tile)), y0: Math.max(0, Math.floor(camY / tile)), x1: Math.min(world.w - 1, Math.floor((camX + W) / tile)), y1: Math.min(world.h - 1, Math.floor((camY + H) / tile)) };
+    const lights = [];
+    for (const p of [me, ...all.filter(q => q !== me)]) { if (p.snuffed) continue; const lamp = lampOf(p.lamp); lights.push({ x: p.x, y: p.y, r: lt.reach * lamp.mult, f: 1, rgb: lamp.glow || undefined }); }
+    for (const f of fires) if (f.lit) lights.push({ x: f.x, y: f.y, r: LIT_RADIUS * 0.8, f: flameFlicker(t, f.n, level, reduce).glow });
+    if (watch) lights.push({ x: watch.x, y: watch.y, r: watch.r * watch.f * 0.8, f: Math.min(1, watch.f) });
+    const wet = env ? Math.min(1, env.mist * 0.6 + env.rain * 0.5) : 0;
+    const moon = moonAt(lt.hour), mcx = (camX + W * (0.12 + 0.76 * moon.x)) / tile; // the moon's side of the sky strip, spread over the width of the screen
+    const mo = moonStreaks(lt.hour, mcx, isWaterTile, waterNum, view, t, reduce, MOON_CAP[level], wet);
+    const li = lightStreaks(lights, isWaterTile, waterNum, view, t, reduce, cap - mo.length);
+    glitterMoon = mo.length;
+    g.lineCap = "round"; g.lineWidth = Math.max(1.5, tile * 0.09);
+    for (const s of [...mo, ...li]) {
+      if (all.some(p => Math.abs(p.x - s.x) < 0.45 && Math.abs(p.y - s.y) < 0.45)) continue;
+      const sx = s.x * tile - camX, sy = s.y * tile - camY, half = s.w * tile / 2;
+      g.strokeStyle = `rgba(${s.rgb[0]},${s.rgb[1]},${s.rgb[2]},${s.a.toFixed(3)})`;
+      g.beginPath(); g.moveTo(sx - half, sy); g.lineTo(sx + half, sy); g.stroke();
+      glitterShown.push(s);
+    }
+    g.lineCap = "butt";
   }
 
   // ---- the living layer: water glints, shore foam, swaying crowns and grass, all on the visible tiles only ----
@@ -445,7 +479,7 @@ export function createRenderer(canvas, world, opts = {}) {
     const n = Math.min(nSamp, 240); if (!n) return { frames: 0, level: gov.level };
     const a = Array.from(samples.subarray(0, n)).sort((p, q) => p - q), f = Array.from(frames.subarray(0, n)).filter(v => v > 0 && v < 500).sort((p, q) => p - q);
     const mean = (v) => v.reduce((p, q) => p + q, 0) / (v.length || 1), pct = (v, q) => v.length ? v[Math.min(v.length - 1, Math.floor(v.length * q))] : 0;
-    return { frames: nSamp, level: gov.level, drawMean: mean(a), drawP95: pct(a, 0.95), drawMax: a[a.length - 1], frameMean: mean(f), frameP95: pct(f, 0.95), fps: f.length ? 1000 / mean(f) : 0, fireflies: flyCount, mistBanks: mistCount, drops: dropCount, names: nameDraw, sky: lastSky, flame: lastFlame ? { ...lastFlame } : null, glow: lastGlow ? { kind: lastGlow.kind, amount: lastGlow.amount, tint: lastGlow.tint.slice(), darkAdd: lastGlow.darkAdd, shadowLen: lastGlow.shadowLen } : null, tracks: { on: tracksOn, marks: tracks.size(), drawn: drawnMarks.length, feet: drawnMarks.filter(m => m.ground !== "wake").length, wakes: drawnMarks.filter(m => m.ground === "wake").length, list: drawnMarks.map(m => ({ o: m.o, x: m.x, y: m.y, ground: m.ground, age: Math.round(prevT - m.t) })) }, shadows: shadowList.length, shadowList: shadowList.map(s => ({ x: s.x, y: s.y, kind: s.kind, dx: s.dx, dy: s.dy, len: s.len, alpha: s.alpha })) };
+    return { frames: nSamp, level: gov.level, drawMean: mean(a), drawP95: pct(a, 0.95), drawMax: a[a.length - 1], frameMean: mean(f), frameP95: pct(f, 0.95), fps: f.length ? 1000 / mean(f) : 0, fireflies: flyCount, mistBanks: mistCount, drops: dropCount, names: nameDraw, sky: lastSky, flame: lastFlame ? { ...lastFlame } : null, glow: lastGlow ? { kind: lastGlow.kind, amount: lastGlow.amount, tint: lastGlow.tint.slice(), darkAdd: lastGlow.darkAdd, shadowLen: lastGlow.shadowLen } : null, glitter: { on: glitterOn, shown: glitterShown.length, moon: glitterMoon, list: glitterShown.map(s => ({ x: +s.x.toFixed(2), y: +s.y.toFixed(2), w: +s.w.toFixed(2), a: +s.a.toFixed(3), rgb: s.rgb.slice() })) }, tracks: { on: tracksOn, marks: tracks.size(), drawn: drawnMarks.length, feet: drawnMarks.filter(m => m.ground !== "wake").length, wakes: drawnMarks.filter(m => m.ground === "wake").length, list: drawnMarks.map(m => ({ o: m.o, x: m.x, y: m.y, ground: m.ground, age: Math.round(prevT - m.t) })) }, shadows: shadowList.length, shadowList: shadowList.map(s => ({ x: s.x, y: s.y, kind: s.kind, dx: s.dx, dy: s.dy, len: s.len, alpha: s.alpha })) };
   }
 
   function draw(me, peers, stick, t, light, nodes, reach, fires, shades, env, watch, fishing) {
@@ -546,6 +580,7 @@ export function createRenderer(canvas, world, opts = {}) {
       grad.addColorStop(0, "rgba(255,170,70,0.28)"); grad.addColorStop(0.5, "rgba(255,150,60,0.10)"); grad.addColorStop(1, "rgba(255,150,60,0)");
       g.fillStyle = grad; g.beginPath(); g.arc(sx, sy, r, 0, Math.PI * 2); g.fill();
     }
+    drawGlitter(t, reduce, level, camX, camY, tile, W, H, me, all, fires, watch, lt, env, dpr);
     if (stoneView && stoneView.glow > 0) { // the music stone's glow when its tune was played
       const sx = stoneView.x * tile - camX, sy = stoneView.y * tile - camY, r = tile * 3.6 * (0.7 + 0.3 * stoneView.glow), a = 0.85 * stoneView.glow;
       const grad = g.createRadialGradient(sx, sy, 0, sx, sy, r);
@@ -627,7 +662,7 @@ export function createRenderer(canvas, world, opts = {}) {
     }
   }
 
-  return { draw, resize, burst, setStone: (v) => { stoneView = v; }, stoneSeen: () => !!stoneView, arrows: () => lastArrows.map(a => ({ id: a.id, dist: a.dist, ang: a.ang })), lights: () => lastLights.map(l => ({ ...l })), stats, setShadows: (on) => { shadowsOn = !!on && !plain; }, setTracks: (on) => { tracksOn = !!on && !plain; }, stressTracks: (n) => { stressN = Math.max(0, Math.min(600, n | 0)); }, setLevel: (l) => gov.set(Math.max(0, Math.min(2, l | 0))) };
+  return { draw, resize, burst, setStone: (v) => { stoneView = v; }, stoneSeen: () => !!stoneView, arrows: () => lastArrows.map(a => ({ id: a.id, dist: a.dist, ang: a.ang })), lights: () => lastLights.map(l => ({ ...l })), stats, setShadows: (on) => { shadowsOn = !!on && !plain; }, setTracks: (on) => { tracksOn = !!on && !plain; }, setGlitter: (on) => { glitterOn = !!on && !plain; }, stressTracks: (n) => { stressN = Math.max(0, Math.min(600, n | 0)); }, setLevel: (l) => gov.set(Math.max(0, Math.min(2, l | 0))) };
 }
 
 // The lit lighthouse: a warm pool on the ground, a bright lamp at the top of the tower and two long beams that turn
