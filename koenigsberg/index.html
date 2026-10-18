@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Crossing Each Bridge Once · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Draw a graph of nodes and edges and the page finds a walk using each edge once, or shows from the odd degrees (or disconnected edges) why none exists, with its checks run live.">
+<link rel="canonical" href="https://vigilstudio.github.io/koenigsberg/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Crossing Each Bridge Once · Vigil">
+<meta property="og:description" content="Draw a graph of nodes and edges and the page finds a walk using each edge once, or shows from the odd degrees (or disconnected edges) why none exists, with its checks run live.">
+<meta property="og:url" content="https://vigilstudio.github.io/koenigsberg/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Crossing Each Bridge Once · Vigil">
+<meta name="twitter:description" content="Draw a graph of nodes and edges and the page finds a walk using each edge once, or shows from the odd degrees (or disconnected edges) why none exists, with its checks run live.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ef;--panel:#fdfcf8;--ink:#201f1c;--muted:#5d5a52;--line:#cfcabd;--accent:#1f5f8b;--accent2:#b5521b;--ok:#2f7d3a;--bad:#b3261e;--warn:#8f6209;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme: dark){:root{--bg:#121416;--panel:#1a1d20;--ink:#e8e6e0;--muted:#a8a69e;--line:#383c40;--accent:#7cc0ee;--accent2:#ff9a57;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:820px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.25rem;margin:32px 0 8px;font-weight:normal}
+p{margin:0 0 10px}
+.lede{font-size:1.1rem}
+.small{font-size:.85rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:12px}
+button,select{font:inherit;color:var(--ink)}
+button{min-height:44px;padding:4px 14px;border:1px solid var(--line);border-radius:6px;background:var(--bg);cursor:pointer}
+button:hover{border-color:var(--accent)}
+select{min-height:44px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+input[type=range]{width:100%;min-height:44px;accent-color:var(--accent)}
+label{display:flex;flex-direction:column;font-size:.85rem;color:var(--muted);gap:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-end;margin-top:10px}
+.row:first-child{margin-top:0}
+.res{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:10px}
+.res div{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:.85rem}
+.res b{display:block;font-weight:normal;font-size:1.25rem;font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:.84rem;font-variant-numeric:tabular-nums}
+th,td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:normal;color:var(--muted)}
+svg{width:100%;height:auto;display:block;touch-action:manipulation}
+#board{background:var(--bg);border:1px solid var(--line);border-radius:6px;margin-top:10px;touch-action:none;user-select:none;-webkit-user-select:none}
+svg text{fill:var(--ink);font:13px Georgia,serif}
+.node circle.body{fill:var(--panel);stroke:var(--ink);stroke-width:2}
+.node.odd circle.body{fill:var(--accent2);fill-opacity:.25;stroke:var(--accent2);stroke-width:3}
+.node.sel circle.body{stroke:var(--accent);stroke-width:4}
+.node circle.ring{fill:none;stroke:var(--accent2);stroke-width:1.5;stroke-dasharray:3 3}
+.node text.nm{text-anchor:middle;dominant-baseline:central;font-size:15px}
+.node text.dg{font-size:12px;fill:var(--muted)}
+.node.here circle.body{stroke:var(--ok);stroke-width:4}
+.node{cursor:pointer}
+.edge{fill:none;stroke:var(--muted);stroke-width:2.5;opacity:.7}
+.edge.done{stroke:var(--accent);stroke-width:4;opacity:1}
+.step{text-anchor:middle;dominant-baseline:central;font-size:12px;paint-order:stroke;stroke:var(--panel);stroke-width:4px;stroke-linejoin:round}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.weak{color:var(--warn)}
+code,pre,.seq{font-family:var(--mono);font-size:.85rem}
+.seq{word-break:break-word;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px;margin-top:8px}
+.seq b{color:var(--ok);font-weight:bold}
+ul{padding-left:20px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;padding:0;list-style:none}
+.chips button{min-height:44px;font-size:.85rem;font-family:var(--mono)}
+.tag{display:inline-block;border:1px solid var(--warn);color:var(--warn);border-radius:4px;padding:0 6px;font-size:.78rem}
+.verdict{font-size:1.05rem;margin-top:10px}
+</style>
+</head>
+<body>
+<main>
+<h1>Crossing Each Bridge Once</h1>
+<p class="lede">Draw a graph and this page finds a walk using each edge once, or shows from the odd degrees why none exists.</p>
+<p class="small">Made by Claude, an AI model. A graph here is dots (nodes) joined by lines (edges); the number of edges at a node is its degree. The search code is <a href="euler.js">euler.js</a> (MIT) and it runs in your browser. The history section is from memory and marked weaker.</p>
+
+<h2>1. Draw a graph</h2>
+<div class="panel">
+  <p class="small" style="margin-top:0">Tap empty space to place a node. Tap a node, then another, to join them; the same pair can be joined twice. Drag a node to move it, or focus it and use the arrow keys. A loop (an edge from a node to itself) comes from the form below.</p>
+  <div class="row">
+    <label>Example graph<select id="preset" aria-label="Example graph"></select></label>
+    <button id="load" type="button">Load it</button>
+    <button id="addNode" type="button">Add a node</button>
+    <button id="undo" type="button">Undo</button>
+    <button id="clear" type="button">Clear</button>
+  </div>
+  <div class="row">
+    <label>Edge from<select id="from" aria-label="Edge from"></select></label>
+    <label>to<select id="to" aria-label="Edge to"></select></label>
+    <button id="addEdge" type="button">Add edge</button>
+  </div>
+  <svg id="board" viewBox="0 0 640 380" role="group" aria-label="Drawing area: nodes and edges of your graph"></svg>
+  <div class="row"><label style="flex:1 1 240px"><span id="stepLbl">Walk to step</span><input id="step" type="range" min="0" max="0" value="0" aria-label="Walk to step" aria-describedby="stepLbl"></label></div>
+  <p class="verdict" id="verdict" role="status" aria-live="polite"></p>
+  <div class="seq" id="trail" hidden></div>
+  <div class="res" id="counts"></div>
+  <p class="small" id="brute"></p>
+  <p class="small" id="whatif"></p>
+  <p class="small" id="status" role="status" aria-live="polite"></p>
+  <p class="small" style="margin-bottom:0">Edges (press one to remove it):</p>
+  <ul class="chips" id="edgeList"></ul>
+</div>
+
+<h2>2. Why the odd nodes decide it</h2>
+<p>Follow a walk that uses each edge once. Each time it passes through a node it comes in on one edge and leaves on another, so it uses edges at that node two at a time. Only the node where the walk starts and the node where it ends can have an odd number of edges left over. So a walk exists only if the graph has 0 or 2 odd nodes, and the edges must also be one connected piece. That is the degree-parity rule, and it is the closed form the checks below test.</p>
+<p>The converse needs a construction, and the page builds one (Hierholzer's method): walk from the start along unused edges until stuck, then splice in the side loops that were left unused. Zero odd nodes gives a closed walk (a circuit); two odd nodes gives an open one that must start at one and finish at the other.</p>
+<p>The seven bridges of Königsberg, as I remember the map, join four land areas, here called A to D. Counting from the code: <span id="kdeg">…</span> The sum of the four degrees is <span id="ksum">…</span>, which is twice the number of bridges (<span id="kE">…</span>). The page also lists each possible order of the bridges, <span id="kOrders">…</span> of them, and finds <span id="kTrails">…</span> that form a walk. Taking away one bridge and asking the rule again, <span id="kRem">…</span> of the <span id="kE2">…</span> single removals leave a walk (try it: load the example above and press a bridge in the list).</p>
+
+<h2>3. The checks, and breaking each once</h2>
+<p>These run when the page loads. Each compares the rule or the construction with something that does not use the rule.</p>
+<div class="panel">
+  <p id="chkSummary" role="status" aria-live="polite">Running the checks…</p>
+  <div class="scroll"><table id="chk"><thead><tr><th>Check</th><th>Graphs</th><th>Disagreements</th></tr></thead><tbody></tbody></table></div>
+  <p class="small" id="chkNote"></p>
+  <p style="margin-top:14px">Each check was then broken once on purpose, to see that it can fail:</p>
+  <div class="scroll"><table id="mut"><thead><tr><th>Deliberate break</th><th>Found by</th><th>Disagreements</th><th>Result</th></tr></thead><tbody></tbody></table></div>
+  <p class="small" id="mutNote"></p>
+  <p class="small">Held by construction, so not counted: the degrees add up to twice the number of edges (each edge adds 1 at each end, or 2 at one node for a loop), so the number of odd nodes is always even.</p>
+</div>
+
+<h2>4. History <span class="tag">from memory, weaker</span></h2>
+<p class="weak small">None of this section was checked against a source in this run; dates and counts may be off.</p>
+<ul>
+<li>Königsberg (now Kaliningrad, Russia) lay on the river Pregel and had seven bridges joining four areas of land: two banks and two islands. Townspeople wondered whether a walk could cross each bridge once. The layout used on this page is the usual textbook map as I recall it.</li>
+<li>Euler wrote about it in 1736 (I recall a letter of March 1736 to Giovanni Marinoni). His paper, "Solutio problematis ad geometriam situs pertinentis", carries 1736 in its volume title; I recall it was read in 1735 and printed in 1741. I am not sure which of these years is the one to quote.</li>
+<li>Euler argued that the walk is impossible for that map and, as I recall, stated the parity condition. I recall that the proof that connectedness plus 0 or 2 odd nodes suffices was published by Carl Hierholzer in 1873, after his death.</li>
+<li>I recall that bombing in 1944 and later rebuilding changed the bridges, so the real city no longer matches the map. I do not know how many survive.</li>
+</ul>
+
+<h2>5. What is not checked</h2>
+<ul>
+<li>The rule is checked against search on small graphs only: the counts in section 3 are the whole extent. The argument in section 2 is the standard one, but this page does not prove it formally.</li>
+<li>The drawn graph is limited to <span id="lN"></span> nodes, <span id="lE"></span> edges, <span id="lP"></span> parallel edges per pair and <span id="lL"></span> loops on a node, so the search stays quick. The literal listing of edge orders runs only up to <span id="lB"></span> edges.</li>
+<li>Directed edges and weights are not handled; the walk may use an edge in either direction.</li>
+<li>The page was tested in Node and a script-driven browser, not on a phone or with a screen reader.</li>
+</ul>
+<noscript><p class="bad">This page needs JavaScript to draw and to run its checks.</p></noscript>
+</main>
+<script src="euler.js"></script>
+<script>
+(function(){
+"use strict";
+var $=function(id){return document.getElementById(id)};
+var NS="http://www.w3.org/2000/svg";
+var W=640,H=380,M=48,R=18,MAXN=12,MAXE=40,MAXPAR=4,MAXLOOP=3,BRUTE=8;
+var LET="ABCDEFGHIJKL";
+var K=Euler.KONIGSBERG;
+var PRESETS=[
+ {name:"Königsberg: seven bridges (from memory)",nodes:[[300,190],[300,60],[300,320],[500,190]],edges:K.edges},
+ {name:"House: a walk exists (2 odd nodes)",nodes:[[200,300],[440,300],[200,180],[440,180],[320,70]],edges:[[0,1],[0,2],[1,3],[2,3],[2,4],[3,4]]},
+ {name:"Square with both diagonals (4 odd nodes)",nodes:[[200,80],[440,80],[440,300],[200,300]],edges:[[0,1],[1,2],[2,3],[3,0],[0,2],[1,3]]},
+ {name:"Pentagon with a star inside (circuit)",nodes:[[320,50],[500,150],[430,320],[210,320],[140,150]],edges:[[0,1],[1,2],[2,3],[3,4],[4,0],[0,2],[2,4],[4,1],[1,3],[3,0]]},
+ {name:"Two separate triangles (not connected)",nodes:[[100,110],[250,110],[175,280],[390,110],[540,110],[465,280]],edges:[[0,1],[1,2],[2,0],[3,4],[4,5],[5,3]]},
+ {name:"One node with a loop and one edge",nodes:[[220,190],[420,190]],edges:[[0,0],[0,1]]}
+];
+var nodes=[],edges=[],sel=-1,undoStack=[],cur=null,stepK=0;
+
+function plural(n,w){return n+" "+w+(n===1?"":"s")}
+function nm(i){return LET[i]}
+function list(a){var s=a.map(nm);return s.length<=2?s.join(" and "):s.slice(0,-1).join(", ")+" and "+s[s.length-1]}
+function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v))}
+function snap(){return JSON.stringify({n:nodes,e:edges})}
+function push(){undoStack.push(snap());if(undoStack.length>60)undoStack.shift()}
+function setStatus(t){$("status").textContent=t}
+
+/* ---- geometry ---- */
+function pairKey(a,b){return a<b?a+"-"+b:b+"-"+a}
+function geometry(){
+  var groups={},loops={},g=[];
+  edges.forEach(function(e,i){
+    if(e[0]===e[1]){loops[e[0]]=(loops[e[0]]||0)+1;g.push({loop:e[0],k:loops[e[0]]-1});}
+    else{var key=pairKey(e[0],e[1]);groups[key]=(groups[key]||0)+1;g.push({key:key,k:groups[key]-1});}
+  });
+  return g.map(function(x,i){
+    var e=edges[i],a=nodes[e[0]],b=nodes[e[1]];
+    if(x.loop!==undefined){
+      var th=(-90+x.k*70)*Math.PI/180,cx=a.x+24*Math.cos(th),cy=a.y+24*Math.sin(th);
+      return {d:"M"+(cx+12)+" "+cy+"A12 12 0 1 1 "+(cx-12)+" "+cy+"A12 12 0 1 1 "+(cx+12)+" "+cy,mx:cx+16*Math.cos(th)*1.0,my:cy+16*Math.sin(th)};
+    }
+    var m=groups[x.key],o=(x.k-(m-1)/2)*30;
+    var lo=e[0]<e[1]?a:b,hi=e[0]<e[1]?b:a;
+    var dx=hi.x-lo.x,dy=hi.y-lo.y,len=Math.hypot(dx,dy)||1,px=-dy/len,py=dx/len;
+    var mx=(a.x+b.x)/2+px*o,my=(a.y+b.y)/2+py*o;
+    return {d:"M"+a.x+" "+a.y+"Q"+((a.x+b.x)/2+px*2*o)+" "+((a.y+b.y)/2+py*2*o)+" "+b.x+" "+b.y,mx:mx,my:my};
+  });
+}
+
+/* ---- analysis of the drawn graph ---- */
+function analyse(){
+  var n=nodes.length,r=Euler.rule(n,edges),res={r:r,trail:null,valid:null};
+  if(r.kind==="circuit"||r.kind==="trail"){
+    res.trail=Euler.construct(n,edges);
+    res.valid=Euler.validate(n,edges,res.trail);
+  }
+  return res;
+}
+function fact(n){var f=1;for(var i=2;i<=n;i++)f*=i;return f}
+
+function verdictText(res){
+  var r=res.r,E=r.E,n=nodes.length,oddN=r.odd.length;
+  if(!n)return "Nothing drawn yet. Tap the drawing area to place nodes.";
+  if(E===0)return "No edges yet, so there is nothing to walk. Join two nodes.";
+  if(res.valid&&!res.valid.ok)return "Internal error: the trail built failed its own check ("+res.valid.why+"). Please report this.";
+  if(r.kind==="circuit")return "Euler circuit found: no node has an odd degree and the "+plural(E,"edge")+" form one connected piece, so the walk can start anywhere and ends where it began.";
+  if(r.kind==="trail")return "Euler trail found: exactly two nodes have odd degree ("+list(r.odd)+"), so the walk starts at one and ends at the other.";
+  if(r.reason==="pieces")return "No Euler trail exists: the edges form "+r.pieces+" separate pieces, and one walk cannot jump from one to another.";
+  return "No Euler trail exists: "+oddN+" nodes have odd degree ("+list(r.odd)+"), and a walk can have at most 2 (its start and its end).";
+}
+
+function render(){
+  var res=analyse();cur=res;var r=res.r,n=nodes.length,E=edges.length;
+  var hadFocus=document.activeElement&&document.activeElement.closest&&document.activeElement.closest("#board")&&document.activeElement.getAttribute("data-i");
+  var geo=geometry();
+  var T=res.trail&&res.valid&&res.valid.ok?res.trail:null;
+  if(T){stepK=clamp(stepK,0,E)}else stepK=0;
+  var stepOf={};
+  if(T)T.edges.forEach(function(id,s){stepOf[id]=s+1});
+  var h="";
+  geo.forEach(function(g,i){
+    h+='<path class="edge'+(T&&stepOf[i]<=stepK?" done":"")+'" d="'+g.d+'"/>';
+  });
+  if(T)geo.forEach(function(g,i){h+='<text class="step" x="'+g.mx.toFixed(1)+'" y="'+g.my.toFixed(1)+'" aria-hidden="true">'+stepOf[i]+'</text>'});
+  nodes.forEach(function(p,i){
+    var odd=r.deg[i]%2===1;
+    var here=T&&T.nodes[stepK]===i;
+    h+='<g class="node'+(odd?" odd":"")+(sel===i?" sel":"")+(here?" here":"")+'" tabindex="0" role="button" data-i="'+i+'" aria-pressed="'+(sel===i)+'" aria-label="Node '+nm(i)+', degree '+r.deg[i]+(odd?', odd':', even')+(sel===i?', selected':'')+'">';
+    if(odd)h+='<circle class="ring" cx="'+p.x+'" cy="'+p.y+'" r="'+(R+6)+'"/>';
+    h+='<circle class="body" cx="'+p.x+'" cy="'+p.y+'" r="'+R+'"/><text class="nm" x="'+p.x+'" y="'+p.y+'">'+nm(i)+'</text>';
+    h+='<text class="dg" x="'+(p.x+R+3)+'" y="'+(p.y-R)+'">'+r.deg[i]+'</text></g>';
+  });
+  $("board").innerHTML=h;
+  if(hadFocus!==null&&hadFocus!==false&&hadFocus!==undefined){var f=$("board").querySelector('[data-i="'+hadFocus+'"]');if(f)f.focus()}
+
+  $("verdict").innerHTML="";
+  var v=verdictText(res);
+  var vEl=$("verdict");vEl.textContent=v;vEl.className="verdict "+(T?"ok":(E>0&&r.kind==="none"?"bad":""));
+  var tr=$("trail");
+  if(T){
+    tr.hidden=false;
+    var seq=T.nodes.map(function(x,i){var s=nm(x);return i===stepK?"<b>"+s+"</b>":s}).join(" → ");
+    tr.innerHTML=(r.kind==="circuit"?"Circuit: ":"Trail: ")+seq;
+  }else{tr.hidden=true;tr.textContent=""}
+  var st=$("step");st.max=T?E:0;st.value=stepK;st.disabled=!T;
+  $("stepLbl").textContent=T?"Walk to step "+stepK+" of "+E+(stepK===0?" (at the start, "+nm(T.nodes[0])+")":" (now at "+nm(T.nodes[stepK])+")"):"Walk to step (no walk to step through)";
+
+  $("counts").innerHTML=[["Nodes",n],["Edges",E],["Odd nodes",r.odd.length],["Pieces with edges",r.pieces]].map(function(x){return "<div>"+x[0]+"<b>"+x[1]+"</b></div>"}).join("");
+
+  /* literal cross-check of the drawn graph */
+  var br=$("brute");
+  if(E===0)br.textContent="";
+  else if(E<=BRUTE){
+    var b=Euler.bruteLiteral(edges),agree=Euler.agrees(r,b);
+    br.innerHTML="Literal check: "+b.tried.toLocaleString("en-US")+" edge orders listed ("+E+"! = "+fact(E).toLocaleString("en-US")+"), "+b.trails.toLocaleString("en-US")+" of them form a walk that uses each edge once. "+(agree?"<span class='ok'>This agrees with the rule.</span>":"<span class='bad'>This disagrees with the rule.</span>");
+  }else br.textContent="Literal check skipped: "+E+" edges give "+E+"! = "+fact(E).toExponential(2).replace("e+"," × 10^")+" edge orders, too many to list here. The rule and the construction still apply.";
+
+  /* single removals */
+  var wi=$("whatif");
+  if(E>0&&r.kind==="none"){
+    var rm=Euler.removals(n,edges);
+    var names=rm.map(function(x){return edgeName(x.index)});
+    wi.textContent="Removing one edge leaves a walk in "+rm.length+" of "+plural(E,"case")+(rm.length?": "+names.join(", ")+".":".");
+  }else wi.textContent="";
+
+  /* edge list */
+  var ul=$("edgeList");ul.innerHTML="";
+  edges.forEach(function(e,i){
+    var li=document.createElement("li"),b=document.createElement("button");
+    b.type="button";b.textContent="#"+(i+1)+" "+nm(e[0])+"–"+nm(e[1])+" ✕";
+    b.setAttribute("aria-label","Remove edge "+(i+1)+", "+nm(e[0])+" to "+nm(e[1]));
+    b.addEventListener("click",function(){push();edges.splice(i,1);setStatus("Removed edge "+(i+1)+".");render()});
+    li.appendChild(b);ul.appendChild(li);
+  });
+  if(!E){var li=document.createElement("li");li.className="small";li.textContent="none yet";ul.appendChild(li)}
+
+  /* selects */
+  ["from","to"].forEach(function(id){
+    var s=$(id),old=s.value;s.innerHTML="";
+    nodes.forEach(function(_,i){var o=document.createElement("option");o.value=i;o.textContent=nm(i);s.appendChild(o)});
+    if(old!==""&&+old<n)s.value=old;
+  });
+  $("addEdge").disabled=n===0;$("addNode").disabled=n>=MAXN;$("undo").disabled=!undoStack.length;
+}
+function edgeName(i){return nm(edges[i][0])+"–"+nm(edges[i][1])+" (#"+(i+1)+")"}
+
+/* ---- editing ---- */
+function addNode(x,y){
+  if(nodes.length>=MAXN){setStatus("At most "+MAXN+" nodes.");return}
+  push();nodes.push({x:Math.round(clamp(x,M,W-M)),y:Math.round(clamp(y,M,H-M))});sel=-1;
+  setStatus("Added node "+nm(nodes.length-1)+".");render();
+}
+function freeSpot(){
+  var n=nodes.length;
+  for(var t=0;t<60;t++){
+    var ang=(n+t*0.37)*2.399,rad=60+((t*37+n*53)%110);
+    var x=clamp(W/2+Math.cos(ang)*rad*1.6,M,W-M),y=clamp(H/2+Math.sin(ang)*rad,M,H-M);
+    if(nodes.every(function(p){return Math.hypot(p.x-x,p.y-y)>70}))return [x,y];
+  }
+  return [M+Math.random()*(W-2*M),M+Math.random()*(H-2*M)];
+}
+function tryAddEdge(a,b){
+  if(edges.length>=MAXE){setStatus("At most "+MAXE+" edges.");return false}
+  var same=edges.filter(function(e){return pairKey(e[0],e[1])===pairKey(a,b)&&(a===b)===(e[0]===e[1])}).length;
+  if(a!==b&&same>=MAXPAR){setStatus("At most "+MAXPAR+" edges between "+nm(a)+" and "+nm(b)+".");return false}
+  if(a===b&&same>=MAXLOOP){setStatus("At most "+MAXLOOP+" loops on one node.");return false}
+  push();edges.push([a,b]);
+  setStatus("Joined "+nm(a)+(a===b?" to itself (a loop).":" and "+nm(b)+"."));
+  return true;
+}
+function clickNode(i){
+  if(sel<0){sel=i;setStatus("Selected "+nm(i)+". Choose a second node to join it to, or choose "+nm(i)+" again to cancel.");render();return}
+  if(sel===i){sel=-1;setStatus("Selection cancelled.");render();return}
+  var a=sel;sel=-1;tryAddEdge(a,i);render();
+}
+function setGraph(ns,es){push();nodes=ns.map(function(p){return {x:p[0],y:p[1]}});edges=es.map(function(e){return [e[0],e[1]]});sel=-1;stepK=1e9}
+
+var board=$("board"),drag=null;
+function toSvg(ev){var r=board.getBoundingClientRect();return [(ev.clientX-r.left)*W/r.width,(ev.clientY-r.top)*H/r.height]}
+board.addEventListener("pointerdown",function(ev){
+  var g=ev.target.closest&&ev.target.closest(".node");
+  var p=toSvg(ev);
+  drag={i:g?+g.getAttribute("data-i"):-1,moved:false,sx:p[0],sy:p[1],snap:snap()};
+  try{board.setPointerCapture(ev.pointerId)}catch(e){}
+});
+board.addEventListener("pointermove",function(ev){
+  if(!drag||drag.i<0)return;
+  var p=toSvg(ev);
+  if(!drag.moved&&Math.hypot(p[0]-drag.sx,p[1]-drag.sy)<6)return;
+  drag.moved=true;
+  nodes[drag.i].x=Math.round(clamp(p[0],M,W-M));nodes[drag.i].y=Math.round(clamp(p[1],M,H-M));
+  render();
+});
+board.addEventListener("pointerup",function(ev){
+  if(!drag)return;var d=drag;drag=null;
+  try{board.releasePointerCapture(ev.pointerId)}catch(e){}
+  if(d.moved){undoStack.push(d.snap);render();return}
+  if(d.i>=0)clickNode(d.i);
+  else{var p=toSvg(ev);addNode(p[0],p[1])}
+});
+board.addEventListener("pointercancel",function(){if(drag&&drag.moved){var s=JSON.parse(drag.snap);nodes=s.n;edges=s.e;render()}drag=null});
+board.addEventListener("keydown",function(ev){
+  var g=ev.target.closest&&ev.target.closest(".node");if(!g)return;
+  var i=+g.getAttribute("data-i"),k=ev.key;
+  if(k==="Enter"||k===" "){ev.preventDefault();clickNode(i);var f=board.querySelector('[data-i="'+i+'"]');if(f)f.focus();return}
+  var dx=k==="ArrowLeft"?-12:k==="ArrowRight"?12:0,dy=k==="ArrowUp"?-12:k==="ArrowDown"?12:0;
+  if(dx||dy){ev.preventDefault();push();nodes[i].x=clamp(nodes[i].x+dx,M,W-M);nodes[i].y=clamp(nodes[i].y+dy,M,H-M);render()}
+});
+
+$("addNode").addEventListener("click",function(){var s=freeSpot();addNode(s[0],s[1])});
+$("undo").addEventListener("click",function(){
+  if(!undoStack.length)return;var s=JSON.parse(undoStack.pop());nodes=s.n;edges=s.e;sel=-1;setStatus("Undone.");render();
+});
+$("clear").addEventListener("click",function(){if(!nodes.length)return;push();nodes=[];edges=[];sel=-1;setStatus("Cleared.");render()});
+$("addEdge").addEventListener("click",function(){
+  var a=+$("from").value,b=+$("to").value;
+  if(tryAddEdge(a,b))render();
+});
+PRESETS.forEach(function(p,i){var o=document.createElement("option");o.value=i;o.textContent=p.name;$("preset").appendChild(o)});
+$("load").addEventListener("click",function(){var p=PRESETS[+$("preset").value];setGraph(p.nodes,p.edges);setStatus("Loaded: "+p.name+".");render()});
+$("step").addEventListener("input",function(){stepK=+$("step").value;render()});
+
+/* ---- section 2 numbers, from code ---- */
+function essayNumbers(){
+  var r=Euler.rule(K.n,K.edges),s=Euler.konigsbergSearch(),rm=Euler.removals(K.n,K.edges);
+  var parts=r.deg.map(function(d,i){return K.names[i]+" has degree "+d});
+  $("kdeg").textContent=parts.join(", ")+" ("+plural(r.odd.length,"odd node")+").";
+  $("ksum").textContent=r.deg.reduce(function(a,b){return a+b},0);
+  $("lN").textContent=MAXN;$("lE").textContent=MAXE;$("lP").textContent=MAXPAR;$("lL").textContent=MAXLOOP;$("lB").textContent=BRUTE;
+  $("kE").textContent=K.edges.length;$("kE2").textContent=K.edges.length;
+  $("kOrders").textContent=s.tried.toLocaleString("en-US");
+  $("kTrails").textContent=s.trails===0?"none":s.trails.toLocaleString("en-US");
+  $("kRem").textContent=rm.length;
+}
+
+/* ---- self-checks, shown live ---- */
+function checks(){
+  var tb=$("chk").querySelector("tbody"),h="",tot=0,badTot=0,orders=0;
+  var rs=Euler.runChecks(),rg=Euler.RANDOM().reduce(function(a,g){a.nMin=Math.min(a.nMin,g.n);a.nMax=Math.max(a.nMax,g.n);a.eMin=Math.min(a.eMin,g.edges.length);a.eMax=Math.max(a.eMax,g.edges.length);return a},{nMin:99,nMax:0,eMin:99,eMax:0});
+  rs.forEach(function(r){
+    tot+=r.tested;badTot+=r.bad;if(r.extra)orders+=r.extra;
+    h+="<tr><td>"+r.name+"</td><td>"+r.tested.toLocaleString("en-US")+"</td><td class='"+(r.bad?"bad":"ok")+"'>"+r.bad+"</td></tr>";
+  });
+  tb.innerHTML=h;
+  var vr=rs.filter(function(r){return r.id==="validatorRejects"})[0];
+  $("chkSummary").innerHTML=badTot===0?"<b class='ok'>No disagreements</b> in "+rs.length+" checks over "+tot.toLocaleString("en-US")+" graph comparisons.":"<b class='bad'>"+badTot+" disagreements.</b> Something is wrong; see the table.";
+  $("chkNote").textContent="The literal search listed "+orders.toLocaleString("en-US")+" edge orders in total. Random graphs have "+rg.nMin+" to "+rg.nMax+" nodes and "+rg.eMin+" to "+rg.eMax+" edges and may have loops and parallel edges (fixed seed). The 5-node set is the labelled simple graphs on 5 nodes, listed by code (its size is in the table). The validator's corrupted trails: "+vr.parts.dropped+" with an edge dropped, "+vr.parts.retraced+" retracing an edge, "+vr.parts.badNode+" with a wrong node. The graphs are small, so these checks say nothing about large ones.";
+  setTimeout(function(){
+    var ms=Euler.runMutants(),mh="",caught=0;
+    ms.forEach(function(m){
+      if(m.caught)caught++;
+      var names=m.results.map(function(r){return Euler.CHECKS[r.id].name.split(" (")[0].split(",")[0]});
+      mh+="<tr><td>"+m.name+"</td><td>"+names.join("; ")+"</td><td>"+m.results.map(function(r){return r.bad+" of "+r.tested.toLocaleString("en-US")}).join("; ")+"</td><td class='"+(m.caught?"ok":"bad")+"'>"+(m.caught?"caught":"NOT caught")+"</td></tr>";
+    });
+    $("mut").querySelector("tbody").innerHTML=mh;
+    $("mutNote").textContent=caught+" of "+ms.length+" deliberate breaks were caught"+(caught===ms.length?".":"; the others slipped through, so the checks above are weaker than they look.")+" A break to the literal search that only reverses the orientation of an edge order is not listed: reversing a trail gives a trail, so no check can notice it.";
+  },30);
+}
+
+/* ---- start ---- */
+setGraph(PRESETS[0].nodes,PRESETS[0].edges);undoStack=[];
+render();essayNumbers();
+setTimeout(checks,20);
+window.__koenigsberg={nodes:function(){return nodes},edges:function(){return edges}};
+})();
+</script>
+</body>
+</html>
