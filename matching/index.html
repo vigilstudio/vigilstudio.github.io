@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Matching Doctors to Hospitals · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Edit the rankings of 2 to 6 doctors and hospitals, step through Gale-Shapley proposals, and see who does better depending on which side proposes, with the page checking itself by brute force on random rankings (not real market data).">
+<link rel="canonical" href="https://vigilstudio.github.io/matching/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Matching Doctors to Hospitals · Vigil">
+<meta property="og:description" content="Edit the rankings of 2 to 6 doctors and hospitals, step through Gale-Shapley proposals, and see who does better depending on which side proposes, with the page checking itself by brute force on random rankings (not real market data).">
+<meta property="og:url" content="https://vigilstudio.github.io/matching/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Matching Doctors to Hospitals · Vigil">
+<meta name="twitter:description" content="Edit the rankings of 2 to 6 doctors and hospitals, step through Gale-Shapley proposals, and see who does better depending on which side proposes, with the page checking itself by brute force on random rankings (not real market data).">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#625e55;--line:#cfc9bb;--accent:#2f5f9e;--accent-ink:#ffffff;--hi:#dfe9f7;--hi2:#f7e6c4;--ok:#2f7d3a;--bad:#b3261e;--warn:#9a6a0c;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--hi:#223552;--hi2:#4a3a14;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--hi:#223552;--hi2:#4a3a14;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:860px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.25rem;margin:34px 0 8px;font-weight:normal}
+h3{font-size:.95rem;margin:14px 0 6px;font-weight:normal;color:var(--muted)}
+p{margin:0 0 10px}
+.lede{font-size:1.1rem;margin:0 0 14px}
+.small{font-size:.85rem;color:var(--muted)}
+a{color:var(--accent)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:12px}
+button,select,input{font:inherit}
+button{font-size:.9rem;min-height:44px;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.mini{min-width:44px;padding:2px 6px}
+button:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible,.scroll:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+select,input[type=number]{min-height:44px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);max-width:100%;font-size:.9rem}
+input[type=number]{width:6em}
+label{font-size:.9rem}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.fld{display:flex;flex-direction:column;gap:2px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg label{display:flex;align-items:center;min-height:44px;padding:4px 12px;cursor:pointer;background:var(--panel);font-size:.9rem}
+.seg input{position:absolute;opacity:0;width:1px;height:1px}
+.seg input:checked+span{font-weight:bold}
+.seg label:has(input:checked){background:var(--hi)}
+.seg label:has(input:focus-visible){outline:3px solid var(--ink);outline-offset:-3px}
+.people{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:10px}
+.person{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--bg)}
+.person h3{margin:0 0 4px;color:var(--ink);font-size:.95rem}
+.person ol{list-style:none;margin:0;padding:0}
+.person li{display:flex;align-items:center;gap:6px;border-top:1px solid var(--line);min-height:44px}
+.person li .r{width:1.4em;color:var(--muted);font-variant-numeric:tabular-nums}
+.person li .nm{flex:1;min-width:0}
+.msg{min-height:1.5em;font-size:.9rem;margin:8px 0 0;color:var(--muted)}
+.scroll{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:.85rem;font-variant-numeric:tabular-nums}
+th,td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-weight:normal;color:var(--muted)}
+tr.cur td{background:var(--hi)}
+td.better{background:var(--hi2)}
+td.same{background:var(--hi)}
+.log{margin:10px 0 0;padding:10px 12px;border-left:5px solid var(--accent);background:var(--bg);border-radius:0 6px 6px 0;min-height:3.2em}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.verdict{margin:12px 0 0;padding:10px 12px;border-left:5px solid var(--accent);background:var(--bg);border-radius:0 6px 6px 0}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+ul.chk{padding-left:1.2em;margin:6px 0}
+.chk li{margin:4px 0}
+.mono{font-family:var(--mono);font-size:.85rem}
+details{margin-top:10px}
+summary{cursor:pointer;min-height:32px}
+.strike{text-decoration:line-through;color:var(--muted)}
+footer{margin-top:34px;font-size:.85rem;color:var(--muted)}
+@media (prefers-reduced-motion: no-preference){button{transition:background .15s}}
+</style>
+</head>
+<body>
+<main>
+<h1>Matching Doctors to Hospitals</h1>
+<p class="lede">Edit both sides' rankings, step through Gale-Shapley proposals, and see who ends up with better partners depending on which side proposes.</p>
+<noscript><p class="small">This page does all its counting in JavaScript, so it shows nothing without it.</p></noscript>
+<p class="small">Made by Claude, an AI model by Anthropic. Model: equal numbers of doctors and hospitals, one seat each, everyone ranks everyone on the other side with no ties. Real systems (hospital residency matches, school choice) have many seats, couples, and incomplete lists; this page does not.</p>
+
+<section aria-labelledby="h-edit">
+<h2 id="h-edit">1. The rankings</h2>
+<p>Each person lists the other side, best first. Use the arrow buttons to reorder. A pair is <em>blocking</em> if the doctor and the hospital both prefer each other to the partners they were given; a matching with no blocking pair is <em>stable</em>.</p>
+<div class="panel">
+<div class="row">
+<div class="fld"><label for="nsel">People per side</label><select id="nsel"></select></div>
+<div class="fld"><label for="seed">Seed</label><input type="number" id="seed" min="0" max="999999" value="12" inputmode="numeric"></div>
+<button type="button" id="rand">Random rankings</button>
+<button type="button" id="p3">Sides disagree (3 and 3)</button>
+<button type="button" id="pshared">Everyone agrees (4 and 4)</button>
+</div>
+<h3>Doctors rank hospitals</h3>
+<div class="people" id="dedit"></div>
+<h3>Hospitals rank doctors</h3>
+<div class="people" id="hedit"></div>
+<p class="msg" id="editmsg" role="status"></p>
+</div>
+</section>
+
+<section aria-labelledby="h-step">
+<h2 id="h-step">2. Step through the proposals</h2>
+<p id="stepintro"></p>
+<div class="panel">
+<div class="row">
+<div class="seg" role="radiogroup" aria-label="Who proposes">
+<label><input type="radio" name="side" value="D" checked><span>Doctors propose</span></label>
+<label><input type="radio" name="side" value="H"><span>Hospitals propose</span></label>
+</div>
+<button type="button" class="primary" id="bstep">Step</button>
+<button type="button" id="bback">Back</button>
+<button type="button" id="bend">Run to the end</button>
+<button type="button" id="breset">Restart</button>
+</div>
+<div class="log" id="steplog" aria-live="polite"></div>
+<div class="scroll" tabindex="0" role="region" aria-label="Proposal board"><table id="board"></table></div>
+</div>
+</section>
+
+<section aria-labelledby="h-who">
+<h2 id="h-who">3. Who does better?</h2>
+<p>The same rankings, run to the end once with doctors proposing and once with hospitals proposing. Rank 1 is a person's first choice. The better of the two outcomes for each person is shaded and marked.</p>
+<div class="panel">
+<div class="scroll" tabindex="0" role="region" aria-label="Outcome comparison"><table id="cmp"></table></div>
+<div class="verdict" id="cmpsay" aria-live="polite"></div>
+</div>
+</section>
+
+<section aria-labelledby="h-brute">
+<h2 id="h-brute">4. The page checks itself by brute force</h2>
+<p id="bruteintro"></p>
+<div class="panel">
+<div id="brute"></div>
+<div class="scroll" tabindex="0" role="region" aria-label="All stable matchings"><table id="stabletab"></table></div>
+</div>
+</section>
+
+<section aria-labelledby="h-lie">
+<h2 id="h-lie">5. Can anyone gain by lying?</h2>
+<p id="lieintro"></p>
+<div class="panel"><div id="lie"></div></div>
+</section>
+
+<section aria-labelledby="h-selfcheck">
+<h2 id="h-selfcheck">6. Self-checks on load</h2>
+<p id="scintro"></p>
+<div class="panel"><ul class="chk" id="selfchecks"></ul></div>
+</section>
+
+<section aria-labelledby="h-vote">
+<h2 id="h-vote">How this differs from voting</h2>
+<p>In <a href="../voting/">voting and social choice</a>, many people rank the same few candidates and the question is how to combine those rankings into one winner or one group ranking. Different counting rules disagree, and no rule is free of awkward cases. Here the two sides are different kinds of agent. Each person ranks the <em>other</em> side, and the answer is a pairing, not a winner. There is no counting rule to argue about; the question is whether anyone could walk away from their assigned partner to a better deal that the other party also accepts.</p>
+<p>So the standard of success differs too. A voting rule is judged by properties of the aggregate (does a Condorcet winner win?). A matching is judged by stability: no blocking pair. By Gale and Shapley's theorem (from memory; the self-checks only test it on seeded cases) a stable matching exists in this model, whereas under majority rule a cycle can leave no Condorcet winner. But stability is not unique: the page shows how many stable matchings each instance has and that the proposing side picks its favourite among them.</p>
+</section>
+
+<footer>
+<p id="notchecked"></p>
+<p>Gale and Shapley's deferred-acceptance paper (1962) and the later Nobel-prize-winning market design work are from memory, not looked up. No data comes from the web. Everything on this page is computed in this file. <a href="README.md">README</a></p>
+</footer>
+</main>
+<script>
+"use strict";
+/* ---------- basics ---------- */
+const $ = id => document.getElementById(id);
+const MAXN = 6, MINN = 2;
+const dl = i => String.fromCharCode(65 + i);          // doctor label
+const hl = j => String(j + 1);                        // hospital label
+const dn = i => "doctor " + dl(i), hn = j => "hospital " + hl(j);
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function shuffle(arr, rnd){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function range(n){return Array.from({length:n},(_,i)=>i)}
+function ranks(P){return P.map(l=>{const r=Array(l.length);l.forEach((x,k)=>r[x]=k);return r})}   // r[person][other] = position (0 = first choice)
+function fact(n){let f=1;for(let i=2;i<=n;i++)f*=i;return f}
+function nameList(a){return a.length===0?"none":a.length===1?a[0]:a.slice(0,-1).join(", ")+" and "+a[a.length-1]}
+function ord(k){return "rank "+(k+1)}
+function plural(n,w,ws){return n+" "+(n===1?w:(ws||w+"s"))}
+function randomInst(n, rnd){return {n, dp:range(n).map(()=>shuffle(range(n),rnd)), hp:range(n).map(()=>shuffle(range(n),rnd))}}
+
+/* ---------- Gale-Shapley (proposers P rank receivers; R[r] ranks proposers) ---------- */
+function gs(P, R){
+  const n = P.length, rr = ranks(R);
+  const next = Array(n).fill(0), holder = Array(n).fill(-1), engaged = Array(n).fill(-1);
+  const steps = [{kind:"start", holder:holder.slice(), engaged:engaged.slice(), next:next.slice()}];
+  for(;;){
+    const p = engaged.indexOf(-1);
+    if(p < 0) break;
+    const r = P[p][next[p]++];
+    let kind, bumped = -1;
+    if(holder[r] === -1){kind="free"; holder[r]=p; engaged[p]=r}
+    else if(rr[r][p] < rr[r][holder[r]]){kind="bump"; bumped=holder[r]; engaged[bumped]=-1; holder[r]=p; engaged[p]=r}
+    else kind="reject";
+    steps.push({kind, p, r, bumped, choice: next[p]-1, holder:holder.slice(), engaged:engaged.slice(), next:next.slice()});
+  }
+  return {match: engaged.slice(), steps};
+}
+/* matching as doctor -> hospital */
+function runSide(inst, side){
+  if(side === "D") { const g = gs(inst.dp, inst.hp); return {mD: g.match, steps: g.steps}; }
+  const g = gs(inst.hp, inst.dp), mD = Array(inst.n);
+  g.match.forEach((d, h) => mD[d] = h);
+  return {mD, steps: g.steps};
+}
+function invert(m){const v=Array(m.length);m.forEach((x,i)=>v[x]=i);return v}
+
+/* ---------- brute force ---------- */
+const permCache = {};
+function perms(n){
+  if(permCache[n]) return permCache[n];
+  const out = [], a = range(n);
+  (function rec(k){ if(k===n){out.push(a.slice());return}
+    for(let i=k;i<n;i++){[a[k],a[i]]=[a[i],a[k]];rec(k+1);[a[k],a[i]]=[a[i],a[k]]} })(0);
+  return permCache[n] = out;
+}
+function blockingPairs(m, dr, hr){          // dr[d][h], hr[h][d]; m: doctor -> hospital
+  const inv = invert(m), out = [];
+  for(let d=0; d<m.length; d++) for(let h=0; h<m.length; h++){
+    if(m[d]===h) continue;
+    if(dr[d][h] < dr[d][m[d]] && hr[h][d] < hr[h][inv[h]]) out.push([d,h]);
+  }
+  return out;
+}
+function enumerate(inst){
+  const dr = ranks(inst.dp), hr = ranks(inst.hp), all = perms(inst.n), stable = [];
+  for(const m of all) if(blockingPairs(m, dr, hr).length === 0) stable.push(m);
+  return {total: all.length, stable, dr, hr};
+}
+const sameM = (a,b) => a.every((x,i)=>x===b[i]);
+/* all checks for one instance; returns booleans plus the enumeration */
+function verify(inst, en){
+  en = en || enumerate(inst);
+  const {stable, dr, hr} = en, n = inst.n;
+  const mD = runSide(inst,"D").mD, mH = runSide(inst,"H").mD;
+  const bestD = range(n).map(d => Math.min(...stable.map(s => dr[d][s[d]])));
+  const worstD = range(n).map(d => Math.max(...stable.map(s => dr[d][s[d]])));
+  const bestH = range(n).map(h => Math.min(...stable.map(s => hr[h][invert(s)[h]])));
+  const worstH = range(n).map(h => Math.max(...stable.map(s => hr[h][invert(s)[h]])));
+  const iD = invert(mD), iH = invert(mH);
+  return {
+    en, mD, mH,
+    exists: stable.length > 0,
+    dStable: blockingPairs(mD,dr,hr).length===0 && stable.some(s=>sameM(s,mD)),
+    hStable: blockingPairs(mH,dr,hr).length===0 && stable.some(s=>sameM(s,mH)),
+    dOpt: range(n).every(d => dr[d][mD[d]] === bestD[d]),            // doctors' side gets each doctor's best stable partner
+    hOpt: range(n).every(h => hr[h][iH[h]] === bestH[h]),
+    dPessForH: range(n).every(h => hr[h][iD[h]] === worstH[h]),      // under doctor-proposing each hospital gets its worst stable partner
+    hPessForD: range(n).every(d => dr[d][mH[d]] === worstD[d]),
+    count: stable.length
+  };
+}
+
+/* ---------- lying: can a person gain by misreporting their own list (others truthful)? ---------- */
+function bestLie(inst, mode, who, idx){
+  // mode "D": doctors propose. who "D" or "H". Returns {gain, list, truthRank, bestRank}
+  const dr = ranks(inst.dp), hr = ranks(inst.hp), n = inst.n;
+  const partnerOf = (i2) => { const m = runSide(i2, mode).mD; return who==="D" ? m[idx] : invert(m)[idx]; };
+  const truthP = partnerOf(inst);
+  const trueRank = who==="D" ? dr[idx][truthP] : hr[idx][truthP];
+  let best = trueRank, bestList = null;
+  for(const lst of perms(n)){
+    const i2 = {n, dp: inst.dp.slice(), hp: inst.hp.slice()};
+    if(who==="D") i2.dp[idx] = lst; else i2.hp[idx] = lst;
+    const p = partnerOf(i2);
+    const rk = who==="D" ? dr[idx][p] : hr[idx][p];     // judged by TRUE preferences
+    if(rk < best){best = rk; bestList = lst}
+  }
+  return {gain: best < trueRank, list: bestList, trueRank, bestRank: best};
+}
+function lieSummary(inst, mode){
+  const gainers = {D:[], H:[]};
+  for(const who of ["D","H"]) for(let i=0;i<inst.n;i++){
+    const r = bestLie(inst, mode, who, i);
+    if(r.gain) gainers[who].push({i, ...r});
+  }
+  return gainers;
+}
+
+/* ---------- state ---------- */
+let inst = randomInst(4, mulberry(12));
+let side = "D", run = null, pos = 0;
+
+function resetRun(){ run = runSide(inst, side); pos = 0; }
+
+/* ---------- rendering: editors ---------- */
+function renderEdit(){
+  for(const who of ["D","H"]){
+    const box = $(who==="D" ? "dedit" : "hedit"), prefs = who==="D" ? inst.dp : inst.hp;
+    box.textContent = "";
+    prefs.forEach((lst, i) => {
+      const card = document.createElement("div"); card.className = "person";
+      const h = document.createElement("h3"); h.textContent = who==="D" ? "Doctor " + dl(i) : "Hospital " + hl(i);
+      card.appendChild(h);
+      const ol = document.createElement("ol");
+      lst.forEach((x, k) => {
+        const li = document.createElement("li");
+        const who2 = who==="D" ? "hospital " + hl(x) : "doctor " + dl(x);
+        li.innerHTML = '<span class="r">' + (k+1) + '</span><span class="nm"></span>';
+        li.querySelector(".nm").textContent = who2;
+        for(const dir of [-1, 1]){
+          const b = document.createElement("button"); b.type = "button"; b.className = "mini";
+          b.textContent = dir<0 ? "▲" : "▼";
+          b.setAttribute("aria-label", "Move " + who2 + " " + (dir<0?"up":"down") + " in " + (who==="D"?"doctor "+dl(i):"hospital "+hl(i)) + "'s list");
+          b.disabled = (dir<0 && k===0) || (dir>0 && k===lst.length-1);
+          b.addEventListener("click", () => {
+            const l2 = lst.slice(); [l2[k], l2[k+dir]] = [l2[k+dir], l2[k]];
+            prefs[i] = l2; changed("Moved " + who2 + " " + (dir<0?"up":"down") + " in " + (who==="D"?"doctor "+dl(i):"hospital "+hl(i)) + "'s list.");
+            const again = $(who==="D"?"dedit":"hedit").querySelectorAll(".person")[i].querySelectorAll("li")[k+dir].querySelectorAll("button")[dir<0?0:1];
+            if(again && !again.disabled) again.focus(); else { const o = $(who==="D"?"dedit":"hedit").querySelectorAll(".person")[i].querySelectorAll("li")[k+dir].querySelectorAll("button"); (o[dir<0?1:0]).focus(); }
+          });
+          li.appendChild(b);
+        }
+        ol.appendChild(li);
+      });
+      card.appendChild(ol); box.appendChild(card);
+    });
+  }
+}
+
+/* ---------- rendering: stepper ---------- */
+function stepText(k){
+  const s = run.steps[k], P = side==="D";
+  const pn = x => P ? dn(x) : hn(x), rn = x => P ? hn(x) : dn(x);
+  const RR = ranks(P ? inst.hp : inst.dp);
+  if(s.kind==="start") return "Nobody has proposed yet. Every " + (P?"doctor":"hospital") + " is free. Press Step.";
+  let t = "Step " + k + ": " + pn(s.p) + " proposes to " + rn(s.r) + ", " + (P?"their":"its") + " choice " + (s.choice+1) + ". ";
+  if(s.kind==="free") t += cap(rn(s.r)) + " is free, so it holds " + pn(s.p) + " for now.";
+  else if(s.kind==="bump") t += cap(rn(s.r)) + " was holding " + pn(s.bumped) + ", but ranks " + pn(s.p) + " higher (" + ord(RR[s.r][s.p]) + " against " + ord(RR[s.r][s.bumped]) + "), so it drops " + pn(s.bumped) + " and holds " + pn(s.p) + ". " + cap(pn(s.bumped)) + " is free again.";
+  else t += cap(rn(s.r)) + " keeps " + pn(prevHolder(k, s.r)) + " (" + ord(RR[s.r][prevHolder(k, s.r)]) + ", against " + ord(RR[s.r][s.p]) + " for the new proposal) and turns " + pn(s.p) + " down.";
+  if(k === run.steps.length-1) t += " Everyone is held, so it stops: " + (run.steps.length-1) + " proposals.";
+  return t;
+}
+function prevHolder(k, r){ return run.steps[k-1].holder[r] }
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+function renderStep(){
+  const P = side==="D", s = run.steps[pos], n = inst.n;
+  const pl = P ? dl : hl, rl = P ? hl : dl, prefs = P ? inst.dp : inst.hp;
+  $("steplog").textContent = stepText(pos);
+  const cur = s.p;
+  let h = "<tr><th>" + (P?"Doctor":"Hospital") + "</th><th>Asked so far, in order (struck = turned down or dropped)</th><th>Held by</th></tr>";
+  for(let p=0;p<n;p++){
+    const asked = prefs[p].slice(0, s.next[p]).map(r => r===s.engaged[p] ? "<b>"+rl(r)+"</b>" : '<span class="strike">'+rl(r)+"</span>").join(" ");
+    const state = s.engaged[p] >= 0 ? (P?"hospital ":"doctor ") + rl(s.engaged[p]) : "free";
+    h += '<tr' + (s.kind!=="start" && p===cur ? ' class="cur"' : '') + "><td>" + pl(p) + "</td><td class=\"mono\">" + (asked || "(none yet)") + "</td><td>" + state + "</td></tr>";
+  }
+  $("board").innerHTML = h;
+  const last = pos === run.steps.length-1;
+  $("bstep").disabled = last; $("bend").disabled = last; $("bback").disabled = pos===0; $("breset").disabled = pos===0;
+}
+
+/* ---------- rendering: comparison ---------- */
+const MK = " <b>\u2191 better</b>";
+function renderCompare(v){
+  const n = inst.n, dr = v.en.dr, hr = v.en.hr, iD = invert(v.mD), iH = invert(v.mH);
+  let h = "<tr><th></th><th>Doctors propose</th><th>Hospitals propose</th></tr>";
+  const dBetter = [], hBetter = [], dWorse = [], hWorse = [];
+  for(let d=0; d<n; d++){
+    const a = dr[d][v.mD[d]], b = dr[d][v.mH[d]];
+    if(a<b) dBetter.push(dl(d)); else if(a>b) dWorse.push(dl(d));
+    h += "<tr><td>Doctor " + dl(d) + "</td><td class=\"" + (a<b?"better":"same") + "\">hospital " + hl(v.mD[d]) + " (" + ord(a) + ")" + (a<b?MK:"") + "</td><td class=\"" + (b<a?"better":"same") + "\">hospital " + hl(v.mH[d]) + " (" + ord(b) + ")" + (b<a?MK:"") + "</td></tr>";
+  }
+  for(let g=0; g<n; g++){
+    const a = hr[g][iD[g]], b = hr[g][iH[g]];
+    if(b<a) hBetter.push(hl(g)); else if(b>a) hWorse.push(hl(g));
+    h += "<tr><td>Hospital " + hl(g) + "</td><td class=\"" + (a<b?"better":"same") + "\">doctor " + dl(iD[g]) + " (" + ord(a) + ")" + (a<b?MK:"") + "</td><td class=\"" + (b<a?"better":"same") + "\">doctor " + dl(iH[g]) + " (" + ord(b) + ")" + (b<a?MK:"") + "</td></tr>";
+  }
+  const sumD = (m, rk) => m.reduce((s,x,i)=>s+rk[i][x],0) + n;       // total of 1-based ranks
+  const dd = sumD(v.mD, dr), dh = sumD(v.mH, dr), hd = sumD(iD, hr), hh = sumD(iH, hr);
+  h += "<tr><td><b>Doctors' rank total</b> (lower is better)</td><td>" + dd + "</td><td>" + dh + "</td></tr>";
+  h += "<tr><td><b>Hospitals' rank total</b></td><td>" + hd + "</td><td>" + hh + "</td></tr>";
+  $("cmp").innerHTML = h;
+  let say;
+  if(sameM(v.mD, v.mH)) say = "Both runs give the same matching: " + nameList(range(n).map(d => dl(d) + "–" + hl(v.mD[d]))) + ". " + (v.count===1 ? "Only one stable matching exists here, so it makes no difference who proposes." : "Here " + v.count + " stable matchings exist, yet the two sides' favourites coincide.");
+  else say = "The two runs differ. Doctors who do better when doctors propose: " + nameList(dBetter.map(x=>"doctor "+x)) + "; doctors who do worse: " + nameList(dWorse.map(x=>"doctor "+x)) + ". Hospitals who do better when hospitals propose: " + nameList(hBetter.map(x=>"hospital "+x)) + "; hospitals who do worse: " + nameList(hWorse.map(x=>"hospital "+x)) + ". Rank totals: doctors " + dd + " against " + dh + ", hospitals " + hd + " against " + hh + ".";
+  $("cmpsay").textContent = say;
+}
+
+/* ---------- rendering: brute force ---------- */
+const ST = {ok: '<span class="ok">passes</span>', no: '<span class="bad">FAILS</span>'};
+function renderBrute(v){
+  const n = inst.n, en = v.en, c = x => x ? ST.ok : ST.no;
+  $("bruteintro").textContent = "For " + n + " doctors and " + n + " hospitals there are " + en.total + " ways to pair them one to one. The page lists all " + en.total + ", tests each for a blocking pair from the rankings alone (no use of the proposal method), and compares the result with what the two proposal runs gave.";
+  let h = "<ul class=\"chk\">";
+  h += "<li>Stable matchings found among the " + en.total + ": <b>" + en.stable.length + "</b>. " + (v.exists ? "At least one exists, as the theory promises." : '<span class="bad">None found, which would contradict the theorem.</span>') + "</li>";
+  h += "<li>Doctor-proposing result is one of them and has no blocking pair: " + c(v.dStable) + ".</li>";
+  h += "<li>Hospital-proposing result is one of them and has no blocking pair: " + c(v.hStable) + ".</li>";
+  h += "<li>Proposer-optimal: when doctors propose, each doctor gets the best partner (by that doctor's ranking) found in any stable matching: " + c(v.dOpt) + ". When hospitals propose, each hospital does: " + c(v.hOpt) + ".</li>";
+  h += "<li>Receiver-pessimal: when doctors propose, each hospital gets the worst partner it has in any stable matching: " + c(v.dPessForH) + ". When hospitals propose, each doctor does: " + c(v.hPessForD) + ".</li></ul>";
+  $("brute").innerHTML = h;
+  let t = "<tr><th>Stable matching</th><th>Doctors' ranks</th><th>Hospitals' ranks</th><th>Which run gives it</th></tr>";
+  const n2 = inst.n, dr = en.dr, hr = en.hr;
+  const rows = en.stable.map(s => ({s, dsum: s.reduce((a,x,i)=>a+dr[i][x]+1,0), hsum: invert(s).reduce((a,x,i)=>a+hr[i][x]+1,0)})).sort((a,b)=>a.dsum-b.dsum);
+  for(const r of rows){
+    const tags = []; if(sameM(r.s, v.mD)) tags.push("doctors propose"); if(sameM(r.s, v.mH)) tags.push("hospitals propose");
+    t += "<tr><td class=\"mono\">" + r.s.map((x,i)=>dl(i)+"–"+hl(x)).join(" ") + "</td><td>" + r.dsum + "</td><td>" + r.hsum + "</td><td>" + (tags.join(" and ") || "neither") + "</td></tr>";
+  }
+  $("stabletab").innerHTML = t;
+}
+
+/* ---------- rendering: lying ---------- */
+function liePart(inst, mode){
+  const g = lieSummary(inst, mode), prop = mode, rec = mode==="D" ? "H" : "D";
+  const nm = (who,i) => who==="D" ? "doctor "+dl(i) : "hospital "+hl(i);
+  const lstr = (who,l) => l.map(x => who==="D" ? hl(x) : dl(x)).join(" ");
+  const pw = mode==="D" ? "doctors" : "hospitals", rw = mode==="D" ? "hospitals" : "doctors";
+  let s = "<h3>" + cap(pw) + " propose</h3><ul class=\"chk\">";
+  s += "<li>Proposing " + pw + " who gain by misreporting: <b>" + nameList(g[prop].map(x=>nm(prop,x.i))) + "</b>.</li>";
+  if(g[rec].length){
+    s += "<li>Receiving " + rw + " who gain: <b>" + nameList(g[rec].map(x=>nm(rec,x.i))) + "</b>. For example, " + nm(rec,g[rec][0].i) + " gets a partner truly ranked " + (g[rec][0].bestRank+1) + " instead of " + (g[rec][0].trueRank+1) + " by listing " + lstr(rec,g[rec][0].list) + ".</li>";
+  } else s += "<li>Receiving " + rw + " who gain: <b>none</b>.</li>";
+  return s + "</ul>";
+}
+function renderLie(){
+  const n = inst.n;
+  $("lieintro").textContent = "In the proposal method the answer depends on the lists people hand in, not on their true feelings. For this instance the page tries, one person at a time, every one of the " + fact(n) + " possible orderings of that person's list (everyone else telling the truth), and judges the outcome by the person's true ranking.";
+  $("lie").innerHTML = liePart(inst,"D") + liePart(inst,"H") +
+    '<p class="small">Both lists above are for this instance only. The known result is that the proposing side cannot gain this way; the receiving side sometimes can. The page tests the first claim over many seeded instances in the self-checks below.</p>';
+}
+
+/* ---------- self checks ---------- */
+function selfChecks(){
+  const out = [];
+  const add = (ok, text) => out.push({ok, text});
+  // 1. enumeration counts equal factorial
+  const sizes = range(MAXN-MINN+1).map(i=>i+MINN);
+  const countsOk = sizes.every(n => perms(n).length === fact(n) && new Set(perms(n).map(p=>p.join())).size === fact(n));
+  add(countsOk, "The enumerator produces " + nameList(sizes.map(n => fact(n) + " distinct matchings for " + n + " per side")) + ", each equal to " + "n! computed separately.");
+  // 2. seeded instances, all checks
+  const PER = 300, rnd = mulberry(20261018);
+  let tot = 0, f = {exists:0,dStable:0,hStable:0,dOpt:0,hOpt:0,dPessForH:0,hPessForD:0}, multi = 0, same = 0, maxCount = 0;
+  const perN = {};
+  for(const n of sizes){
+    perN[n] = {tot:0, multi:0};
+    for(let k=0;k<PER;k++){
+      const v = verify(randomInst(n, rnd));
+      tot++; perN[n].tot++;
+      for(const key of Object.keys(f)) if(v[key]) f[key]++;
+      if(v.count > 1){multi++; perN[n].multi++}
+      if(sameM(v.mD, v.mH)) same++;
+      maxCount = Math.max(maxCount, v.count);
+    }
+  }
+  add(f.exists===tot, "A stable matching exists in " + f.exists + " of " + tot + " seeded random instances (" + PER + " for each size from " + sizes[0] + " to " + sizes[sizes.length-1] + " per side).");
+  add(f.dStable===tot && f.hStable===tot, "The doctor-proposing and hospital-proposing results are stable matchings in " + f.dStable + " and " + f.hStable + " of those " + tot + ".");
+  add(f.dOpt===tot && f.hOpt===tot, "Proposer-optimal in " + f.dOpt + " of " + tot + " (doctors proposing) and " + f.hOpt + " of " + tot + " (hospitals proposing).");
+  add(f.dPessForH===tot && f.hPessForD===tot, "Receiver-pessimal in " + f.dPessForH + " and " + f.hPessForD + " of " + tot + ".");
+  // 3. how often the sides differ (information, not a check)
+  const diffN = sizes.map(n => n + " per side: " + perN[n].multi + " of " + perN[n].tot);
+  out.push({ok:true, info:true, text:"Count, not a pass/fail check: instances with more than one stable matching: " + diffN.join("; ") + ". The two runs give different matchings in " + (tot-same) + " of " + tot + "; the largest number of stable matchings seen in one instance is " + maxCount + ". These are random rankings, which are not real market data."});
+  // 4. control: a method that is not stable must be caught
+  const rnd2 = mulberry(5), n4 = 5; let caught = 0, N4 = 400;
+  for(let k=0;k<N4;k++){
+    const I = randomInst(n4, rnd2), taken = new Set(), m = [];
+    for(let d=0; d<n4; d++){ const h = I.dp[d].find(x=>!taken.has(x)); taken.add(h); m.push(h) }
+    const dr = ranks(I.dp), hr = ranks(I.hp), en = enumerate(I);
+    const brute = en.stable.some(s=>sameM(s,m)), direct = blockingPairs(m,dr,hr).length===0;
+    if(!brute && !direct) caught++;
+    if(brute !== direct) { caught = -1e9; }
+  }
+  add(caught > 0, "Control: a method that is not stable (doctors take their best free hospital in order A, B, C, ...) is flagged unstable in " + caught + " of " + N4 + " instances of " + n4 + " per side, so the checker can say no. Its blocking-pair test and the stable-set lookup agree on every one of them (the lookup is built from the same blocking-pair function, so this agreement is by construction, not a second test).");
+  // 5. hand-worked case
+  const H3 = presetCycle(), v3 = verify(H3);
+  const expD = [0,1,2], expH = [2,0,1];
+  add(v3.count===3 && sameM(v3.mD, expD) && sameM(v3.mH, expH), "Hand-worked case (the 'sides disagree' example): worked out beforehand, doctors proposing gives A–1, B–2, C–3 (all first choices) and hospitals proposing gives A–3, B–1, C–2; the page finds " + plural(v3.count, "stable matching") + " and the same two results.");
+  // 6. unique case
+  const H4 = presetShared(), v4 = verify(H4);
+  add(v4.count===1 && sameM(v4.mD, v4.mH), "Hand-worked case (everyone agrees): with identical rankings on each side the page finds " + plural(v4.count, "stable matching") + " and both runs give it.");
+  // 7. proposers cannot gain by lying (seeded)
+  const LIEN = [2,3,4,5], LIEK = 60, rnd3 = mulberry(77); let lieTot = 0, lieBad = 0, recGain = 0, pairs = 0;
+  for(const n of LIEN) for(let k=0;k<LIEK;k++){
+    const I = randomInst(n, rnd3);
+    for(const mode of ["D","H"]){
+      const g = lieSummary(I, mode); lieTot++;
+      if(g[mode].length) lieBad++;
+      if(g[mode==="D"?"H":"D"].length) recGain++;
+    }
+  }
+  add(lieBad===0, "Misreporting: over " + lieTot + " seeded runs (sizes " + LIEN[0] + " to " + LIEN[LIEN.length-1] + " per side, " + LIEK + " instances each, both proposing sides, one person lying at a time over all orderings of their list), a proposer gained in " + lieBad + " and some receiver gained in " + recGain + ".");
+  return out;
+}
+
+/* ---------- presets ---------- */
+function presetCycle(){ return {n:3, dp:[[0,1,2],[1,2,0],[2,0,1]], hp:[[1,2,0],[2,0,1],[0,1,2]]} }
+function presetShared(){ return {n:4, dp:[[0,1,2,3],[0,1,2,3],[0,1,2,3],[0,1,2,3]], hp:[[0,1,2,3],[0,1,2,3],[0,1,2,3],[0,1,2,3]]} }
+
+/* ---------- glue ---------- */
+let sc = null;
+function renderAll(){
+  const v = verify(inst);
+  renderEdit(); renderStep(); renderCompare(v); renderBrute(v); renderLie();
+  $("stepintro").textContent = "Free " + (side==="D"?"doctors":"hospitals") + " propose to their favourite " + (side==="D"?"hospital":"doctor") + " not yet asked. A " + (side==="D"?"hospital":"doctor") + " holds the best proposal it has seen so far and turns the rest down; if a better one arrives, it drops the one it held. Nothing is final until nobody is free.";
+}
+function changed(msg){
+  $("editmsg").textContent = msg || "";
+  resetRun(); renderAll();
+}
+function setInst(i, msg){ inst = i; $("nsel").value = String(inst.n); changed(msg) }
+
+function init(){
+  for(let n=MINN;n<=MAXN;n++){ const o=document.createElement("option"); o.value=n; o.textContent=n; $("nsel").appendChild(o) }
+  $("nsel").value = String(inst.n);
+  $("nsel").addEventListener("change", () => setInst(randomInst(+$("nsel").value, mulberry(+$("seed").value||0)), "New random rankings for " + $("nsel").value + " per side."));
+  $("rand").addEventListener("click", () => setInst(randomInst(+$("nsel").value, mulberry(+$("seed").value||0)), "Random rankings from seed " + ($("seed").value||0) + "."));
+  $("seed").addEventListener("change", () => $("rand").click());
+  $("p3").addEventListener("click", () => setInst(presetCycle(), "Loaded the example in which the two sides want different things."));
+  $("pshared").addEventListener("click", () => setInst(presetShared(), "Loaded the example in which everyone ranks the other side the same way."));
+  document.querySelectorAll('input[name=side]').forEach(r => r.addEventListener("change", () => { side = r.value; if(r.checked){ resetRun(); renderAll(); } }));
+  $("bstep").addEventListener("click", () => { if(pos < run.steps.length-1){pos++; renderStep()} });
+  $("bback").addEventListener("click", () => { if(pos>0){pos--; renderStep()} });
+  $("bend").addEventListener("click", () => { pos = run.steps.length-1; renderStep(); });
+  $("breset").addEventListener("click", () => { pos = 0; renderStep(); });
+  resetRun(); renderAll();
+  // self-checks (after first paint of the rest)
+  const t0 = performance.now();
+  sc = selfChecks();
+  const ms = Math.round(performance.now() - t0);
+  const chk = sc.filter(x=>!x.info), nok = chk.filter(x=>x.ok).length;
+  $("scintro").textContent = nok + " of " + chk.length + " checks pass, plus " + (sc.length-chk.length) + " count" + (nok===chk.length ? "" : " (the failing ones are marked)") + ". They ran in your browser in about " + ms + " ms on seeded random instances, independent of the rankings you edited.";
+  $("selfchecks").innerHTML = sc.map(x => '<li><span class="' + (x.ok?'ok':'bad') + '">' + (x.info?'·':x.ok?'✓':'✗ FAIL') + '</span> ' + x.text.replace(/</g,"&lt;") + '</li>').join("");
+  $("notchecked").textContent = "Not checked: real market data, many-to-one matching, couples, ties or incomplete lists, other browsers and real phones, and screen readers. The seeded instances use uniformly random rankings, so how often the sides differ in them says nothing about real markets.";
+  window.__matching = {sc, gs, verify, enumerate, randomInst, mulberry, runSide, perms};
+}
+init();
+</script>
+</body>
+</html>

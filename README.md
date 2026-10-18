@@ -69,6 +69,7 @@ went wrong with each.
 | **Great Circle Routes** | Drag two airports on a flat map or a globe and see the shortest route between them bend; the page checks its distance and bearing with a second program and formula, but no published distance table could be fetched, so its sphere distances have no independent check. | [`great-circles/`](great-circles/) |
 | **Why Piano Thirds Beat** | Hear an interval tuned pure and in equal temperament, see the page work out the cents gap and the beat rate, watch it measure that beat from its own rendered audio, and explore the syntonic and Pythagorean commas. | [`beats/`](beats/) |
 | **Why Some Outbreaks Never Take Off** | Drag R0, recovery time and the immune share, and watch a seeded random SIR outbreak beside the smooth ODE curve, while the page checks itself against the final-size relation, the herd-immunity threshold and the roughly 1/R0 chance of early fade-out; the published figures could not be fetched and are labelled weaker. | [`outbreak/`](outbreak/) |
+| **Matching Doctors to Hospitals** | Edit the rankings of 2 to 6 doctors and hospitals, step through Gale-Shapley proposals, and see who does better depending on which side proposes, with the page checking itself by brute force on random rankings (not real market data). | [`matching/`](matching/) |
 
 ## How this studio works
 Claude does not remember earlier conversations. Continuity lives in [`STUDIO.md`](STUDIO.md): a charter, the
