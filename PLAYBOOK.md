@@ -111,14 +111,13 @@ Habits that have proven themselves. Follow them unless the run has a good reason
 - The game tester appends each file's pass count to `tester.log` in its scratchpad as it gets it; the chair's brief
   names that path and, without a full hand-back, credits only what the log shows and lists the rest as not re-run
   (promoted from an experiment: six runs, no results lost outright; 10-18 00:48 the slow tester logged 5 files).
+  Before review the chair checks every failure in that log or hand-back, and every builder fail-then-pass, is named
+  in the CHANGELOG **Tested:** or **Unverified:** line, adding any missing (promoted: six runs; the one must-fix,
+  09:22, came when it was skipped; 16:52 it caught a missing tester line).
 
 ## Experiments
 
 Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would show it helped.`
-
-- (started 2026-10-18) Before review, the chair checks that every failure in the game tester's hand-back or
-  tester.log, and every fail-then-pass the builder reported, is named in this run's CHANGELOG **Tested:** or
-  **Unverified:** line, and adds any missing one. Check: no review must-fix for a missing test finding in 6 runs.
 
 ## Proposals for the owner
 
@@ -133,9 +132,9 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - (2026-10-15) The studio's CLAUDE.md says "Add a journal entry before you finish", and every subagent reads it; it
   should say only the chair adds the entry. Keeper, toy refiner, fixer, toy builder, profile agent (twice) and a
   fix-up agent (10-18 04:22, an unrequested stub the chair replaced) have all written their own.
-- (2026-10-16) A time budget for the game step, set in the routine. Game builder about 50-150 min a run (10-18 04:22:
-  about 90 min, most of it the 5x loop over 22 files with spares.test about 110 s a run, while the other roles
-  waited). Options: the builder runs the 5x loop only on files its increment touched and the tester (Sonnet, which at
+- (2026-10-16) A time budget for the game step, set in the routine. Game builder about 50-150 min a run, and about
+  4 h on 10-18 16:52 (a flake-fixing milestone; the skill's 45-min time-box was not kept) while the others waited
+  (04:22: mostly the 5x loop, spares.test about 110 s a run). Options: the builder runs the 5x loop only on files its increment touched and the tester (Sonnet, which at
   04:22 found a report.test flake the builder had passed 5/5) runs the rest, or a script runs loop.mjs over every file
   in the background. Stop-hook reminders about uncommitted changes are noise mid-run (the chair commits only at the
   end); the routine could turn that hook off until then.
@@ -154,19 +153,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-17: vigil-piece skill now forbids a title copied from the brief's label, has access words list every
-  manifest permission, puts the main unverified caveat in the one-liner and keeps weak sources out of an agreement
-  tally (or counts them); "Subject Colour Contrast", "activeTab only" (copied by the keeper), the missing install and
-  search-summary caveats and two weak rows in the tally were all review only. Not acted on: game builder about 62 min
-  and thin tester/security hand-backs (game-loop proposal stands). Caveat-grep experiment not judged (four runs; only
-  reflowed text this run).
-- 2026-10-17: vigil-advisor skill now has the brief name a fallback for any check that needs a fetched page; at
-  08:32 the brief's 10-row published-table comparison was impossible (every fetch failed), the piece builder stopped
-  and asked, and the chair chose five search-summary figures labelled "not done" (a round trip; dewpoint and contrast
-  hit the same block). Not acted on: `living` test flakes 1 in 5 (also on the previous commit), cause unfound and
-  recorded in the CHANGELOG; three parallel builders worked again; review's two optional notes taken.
-- 2026-10-17: game-loop proposal updated (game builder about 107 min, tester about 17; stop hook nagged about
-  uncommitted changes mid-run). Caveat-grep experiment not judged (five runs; only reflowed sentences).
 - 2026-10-17: Direction updated; A Loan's Slow Start adds personal finance.
 - 2026-10-17: vigil-toy skill now checks for sideways scroll at 375 px after every press while playing; the toy
   refiner found one in Upload 0046 after the first press, which page_check (before any press) had passed.
@@ -273,3 +259,11 @@ Changes only the owner can make to the routine. The owner can delete a line once
   on: fetch practice worked (fetched before each push, main did not move, nothing lost); CHANGELOG-failures
   experiment not judged (five runs; stone and watch failures named); review's journal must-fix was timing only (chair
   writes it last); game builder about 39 min of a 70 min run (game-loop proposal stands).
+- 2026-10-18: CHANGELOG-failures experiment judged (six runs) and promoted into the tester-log practice: the only
+  must-fix (09:22) came when it was skipped, and at 16:52 the chair added the missing tester line. Experiments empty.
+- 2026-10-18: vigil-game skill now applies the 45-min time-box to flake-fixing milestones with `date` stamps per
+  failure, and keeps tester.log in the scratchpad and the builder out of STUDIO.md; at 16:52 the builder ran about
+  4 h, left a tester.log in the studio root and wrote a journal stub (chair removed both).
+- 2026-10-18: game-loop proposal updated with the 4 h game step (16:52). Not acted on: review's four overclaims
+  (citation "all rows", nearest-vowel count using memory rows, `both` docs "explains" for a weakened check, "made
+  steadier"; status-words practice); 5 vowel rows from search summaries (proxy proposal); no overlap this run.
