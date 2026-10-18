@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Moon Phase Times · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="A single-file MIT JavaScript module that gives the times of new moon, first quarter, full moon and last quarter for any date from 1800 to 2199 plus the illuminated fraction, with a landing page that runs 15 live checks, four of them against the vendored astronomy-engine; its Meeus coefficients were typed from memory and only that comparison vouches for them.">
+<link rel="canonical" href="https://vigilstudio.github.io/moonphase/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Moon Phase Times · Vigil">
+<meta property="og:description" content="A single-file MIT JavaScript module that gives the times of new moon, first quarter, full moon and last quarter for any date from 1800 to 2199 plus the illuminated fraction, with a landing page that runs 15 live checks, four of them against the vendored astronomy-engine; its Meeus coefficients were typed from memory and only that comparison vouches for them.">
+<meta property="og:url" content="https://vigilstudio.github.io/moonphase/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Moon Phase Times · Vigil">
+<meta name="twitter:description" content="A single-file MIT JavaScript module that gives the times of new moon, first quarter, full moon and last quarter for any date from 1800 to 2199 plus the illuminated fraction, with a landing page that runs 15 live checks, four of them against the vendored astronomy-engine; its Meeus coefficients were typed from memory and only that comparison vouches for them.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f4f4f1;--panel:#fbfbf8;--ink:#1d2024;--muted:#555c66;--line:#c9ccd2;--accent:#3b4f8f;--moon:#e9e4c8;--moonDark:#2a2f3a;--ok:#2f7d3a;--bad:#b3261e;--warn:#8f6209;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme: dark){:root{--bg:#10131a;--panel:#171b24;--ink:#e6e8ec;--muted:#a4abb7;--line:#343b49;--accent:#9db2ff;--moon:#efe9c9;--moonDark:#252a36;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:820px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.25rem;margin:32px 0 8px;font-weight:normal}
+p{margin:0 0 10px}
+.lede{font-size:1.1rem}
+.small{font-size:.85rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:12px}
+a{color:var(--accent)}
+button,input{font:inherit}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+input[type=date]{min-height:44px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+button{min-height:44px;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer;font-size:.9rem}
+.row{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:flex-end;margin-top:10px}
+.msg{min-height:1.4em;font-size:.9rem;color:var(--warn);margin:6px 0 0}
+.now{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:center;margin-top:12px}
+@media (max-width:420px){.now{grid-template-columns:1fr}}
+.now svg{width:120px;height:120px;display:block}
+.big{font-size:1.5rem;font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:.84rem;font-variant-numeric:tabular-nums}
+th,td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+th:first-child,td:first-child,td.l,th.l{text-align:left}
+th{font-weight:normal;color:var(--muted)}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.weak{color:var(--warn)}
+code,pre{font-family:var(--mono);font-size:.85rem}
+pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px;overflow-x:auto}
+ul{padding-left:20px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>Moon Phase Times</h1>
+<p class="lede">A single-file JavaScript module (MIT) for the times of new moon, first quarter, full moon and last quarter, and the Moon's illuminated fraction. This page imports it, and runs its tests live.</p>
+<p class="small">Caveats: every coefficient in the module was typed from memory, not copied from Meeus's book, and is vouched for only by the comparison with astronomy-engine below; times differ from astronomy-engine by about a minute, and the illuminated fraction is a low-accuracy formula (worst difference shown below). Made by Claude, an AI model.</p>
+
+<section class="panel" aria-labelledby="h-try">
+<h2 id="h-try" style="margin-top:0">Try it</h2>
+<div class="row">
+<div><label for="day">Day (read at 12:00 UT)</label><br><input id="day" type="date"></div>
+<button type="button" id="today">Today</button>
+<button type="button" id="prev">&minus; 1 day</button>
+<button type="button" id="next">+ 1 day</button>
+</div>
+<p class="msg" id="msg" role="status"></p>
+<div class="now">
+<svg id="moon" viewBox="0 0 120 120" role="img" aria-label="Moon drawing"></svg>
+<div aria-live="polite">
+<div class="big" id="frac"></div>
+<div id="around"></div>
+</div>
+</div>
+<h3 id="listh" style="font-weight:normal;font-size:1.05rem;margin:18px 0 4px"></h3>
+<div class="scroll" tabindex="0" role="region" aria-label="Phase times"><table id="list"></table></div>
+<p class="small">All times are UT (close to UTC). The drawing shows the Moon as seen from the northern hemisphere. Supported dates are <span id="range"></span>; the module accepts others but the delta-T it uses there is only a rough guide.</p>
+</section>
+
+<h2>The page runs the tests</h2>
+<p id="chksum">Running the tests in a background worker; this takes a few seconds&hellip;</p>
+<div class="scroll" tabindex="0" role="region" aria-label="Test results"><table id="chk"></table></div>
+
+<h3 style="font-weight:normal;font-size:1.05rem;margin:22px 0 4px">(a) Against astronomy-engine, row by row</h3>
+<p id="sweepsum"></p>
+<div class="scroll" tabindex="0" role="region" aria-label="Comparison rows"><table id="cmp"></table></div>
+<p class="small">Positive means this module is later. "Dyn." compares the dynamical-time instants (no delta-T involved); "UT" also includes the two programs' delta-T models. Rows marked oldest, newest and largest are picked by the code from the whole sweep; the rest are evenly spaced through it.</p>
+
+<h3 style="font-weight:normal;font-size:1.05rem;margin:22px 0 4px">(b) Against a plain mean-month estimate</h3>
+<p id="meansum"></p>
+<h3 style="font-weight:normal;font-size:1.05rem;margin:22px 0 4px">(c) Round trip: illuminated fraction at each computed phase time</h3>
+<div class="scroll" tabindex="0" role="region" aria-label="Round trip"><table id="rt"></table></div>
+
+<h2>What the checks do and do not vouch for</h2>
+<ul id="limits"></ul>
+
+<h2>Use it</h2>
+<pre>import { phasesBetween, nextPhase, previousPhase, illuminatedFraction } from "./moonphase.js";
+
+nextPhase(new Date("2026-10-18T12:00:00Z"));
+//  { name: "first quarter", index: 1, date: Date (UT), jde: 2461... }
+phasesBetween(new Date("2026-01-01"), new Date("2026-12-31"));   // array, oldest first; [] if none
+illuminatedFraction(new Date());                                  // 0 (new) to 1 (full)</pre>
+<p>Also exported: <code>phase(n)</code> (n = 4 &times; lunation + 0, 1, 2, 3 from the January 2000 new moon), <code>phaseAngle(date)</code>, <code>phaseJDE(k)</code>, <code>deltaT(year)</code> and <code>PHASES</code>. Bad input throws <code>TypeError</code> or <code>RangeError</code>. Tests: <code>node test-node.mjs</code>.</p>
+<p>Files: <a href="moonphase.js" download>moonphase.js</a> (the module, one file, no dependencies), <a href="tests.js">tests.js</a>, <a href="test-node.mjs">test-node.mjs</a>, <a href="runner.js">runner.js</a>, <a href="LICENSE">LICENSE</a>, <a href="README.md">README.md</a>.</p>
+
+<h2>Licence</h2>
+<p>Code: <code>moonphase.js</code>, the tests and this page are MIT licensed, &copy; 2026 Claude (an AI model) for Vigil studio (<a href="LICENSE">LICENSE</a>). Vendored library, used only by the checks and not needed to use the module: astronomy-engine 2.1.19 by Don Cross, MIT (<a href="vendor/LICENSE-astronomy-engine.txt">vendor/LICENSE-astronomy-engine.txt</a>), taken from its npm package, unmodified except that the author's e-mail address was removed from the copyright and author lines (<a href="vendor/astronomy.js">vendor/astronomy.js</a>). Its licence text was fetched from the project's repository and shows a different year range (2019-2025) from the code header (2019-2023). The 40-second residual limit and the 1.5-day mean-month limit were both set after seeing the results. Method: the series is Jean Meeus's, as I remember it; the book's text is not copied.</p>
+</main>
+<script type="module">
+import * as mp from "./moonphase.js";
+const $ = (id) => document.getElementById(id);
+const MS = 86400000;
+const YMIN = 1800, YMAX = 2199, BEFORE = 15, AFTER = 45;   // supported years; window of the phase list in days
+$("day").min = YMIN + "-01-01"; $("day").max = YMAX + "-12-31";
+$("range").textContent = `${YMIN} to ${YMAX}`;
+$("listh").textContent = `Phases from ${BEFORE} days before to ${AFTER} days after`;
+const RANGE_MSG = `Pick a date between ${YMIN} and ${YMAX}.`;
+const fmt = (d) => d.toISOString().replace("T", " ").replace(/:\d\d(\.\d+)?Z$/, "") + " UT";
+const fmtS = (d) => d.toISOString().replace("T", " ").replace(/\.\d+Z$/, "Z");
+const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+
+function moonSvg(f, waxing) {
+  const r = 50, cx = 60, cy = 60, rx = Math.abs(2 * f - 1) * r;
+  let lit;
+  if (f < 0.002) lit = "";
+  else if (f > 0.998) lit = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--moon)"/>`;
+  else {
+    const sweep = f > 0.5 ? 1 : 0;
+    lit = `<path d="M${cx} ${cy - r} A${r} ${r} 0 0 1 ${cx} ${cy + r} A${rx.toFixed(2)} ${r} 0 0 ${sweep} ${cx} ${cy - r}Z" fill="var(--moon)"${waxing ? "" : ` transform="translate(120 0) scale(-1 1)"`}/>`;
+  }
+  $("moon").innerHTML = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--moonDark)" stroke="var(--line)"/>${lit}`;
+  $("moon").setAttribute("aria-label", `Moon drawing, ${(f * 100).toFixed(0)} percent lit, ${waxing ? "waxing" : "waning"}`);
+}
+
+function show(day) {
+  const t = new Date(day.getTime() + 12 * 3600000);
+  const f = mp.illuminatedFraction(t);
+  const pv = mp.previousPhase(t), nx = mp.nextPhase(t);
+  const waxing = pv.name === "new" || pv.name === "first quarter";
+  moonSvg(f, waxing);
+  $("frac").textContent = `${(f * 100).toFixed(1)}% lit, ${waxing ? "waxing" : "waning"}`;
+  $("around").innerHTML = `Last: ${esc(pv.name)}, ${fmt(pv.date)}<br>Next: ${esc(nx.name)}, ${fmt(nx.date)}`;
+  const list = mp.phasesBetween(new Date(t.getTime() - BEFORE * MS), new Date(t.getTime() + AFTER * MS));
+  $("list").innerHTML = "<tr><th class='l'>Phase</th><th>Time (UT)</th></tr>" + (list.length ? list.map((p) => `<tr><td>${esc(p.name)}</td><td>${fmt(p.date)}</td></tr>`).join("") : "<tr><td colspan='2'>none in this window</td></tr>");
+}
+function readDay() {
+  const v = $("day").value;
+  const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(v);
+  if (!m) { $("msg").textContent = RANGE_MSG; return null; }
+  const y = +m[1];
+  if (y < YMIN || y > YMAX) { $("msg").textContent = RANGE_MSG; return null; }
+  $("msg").textContent = "";
+  return new Date(Date.UTC(y, +m[2] - 1, +m[3]));
+}
+function setDay(d) { $("day").value = d.toISOString().slice(0, 10); update(); }
+function update() { const d = readDay(); if (d) show(d); }
+$("day").addEventListener("input", update);
+$("today").addEventListener("click", () => setDay(new Date()));
+$("prev").addEventListener("click", () => { const d = readDay(); if (d) setDay(new Date(d.getTime() - MS)); });
+$("next").addEventListener("click", () => { const d = readDay(); if (d) setDay(new Date(d.getTime() + MS)); });
+setDay(new Date());
+
+// ---- live tests ----
+function render(r) {
+  const failed = r.checks.filter((c) => !c.pass);
+  $("chksum").innerHTML = `<b class="${failed.length ? "bad" : "ok"}">${r.checks.length - failed.length} of ${r.checks.length} checks pass</b> in this browser just now` +
+    (failed.length ? "; failing: " + failed.map((c) => esc(c.name)).join("; ") : "") + ".";
+  $("chk").innerHTML = "<tr><th class='l'>Check</th><th>Result</th><th class='l'>What was measured</th></tr>" +
+    r.checks.map((c) => `<tr><td class="l">${esc(c.name)}</td><td class="${c.pass ? "ok" : "bad"}">${c.pass ? "pass" : "FAIL"}</td><td class="l">${esc(c.detail)}</td></tr>`).join("");
+  const n = r.counts;
+  $("sweepsum").textContent = `Every phase from 1800 to 2200 (${n.phases} of them) was computed here and looked up in astronomy-engine (${n.compared} compared). Mean offset ${n.meanTT.toFixed(1)} s; largest gap once that mean is removed ${n.residual.toFixed(1)} s. ${r.table.length} rows:`;
+  $("cmp").innerHTML = "<tr><th class='l'>Row</th><th class='l'>Phase</th><th>This module (UT)</th><th>astronomy-engine (UT)</th><th>Dyn. s</th><th>UT s</th></tr>" +
+    r.table.map((x) => `<tr><td class="l">${esc(x.why || "")}</td><td class="l">${esc(x.name)}</td><td>${fmtS(x.lib)}</td><td>${fmtS(x.ref)}</td><td>${x.ttDiff.toFixed(1)}</td><td>${x.utDiff.toFixed(1)}</td></tr>`).join("");
+  const mc = r.checks.find((c) => c.name.startsWith("no phase is more than"));
+  $("meansum").textContent = `The estimate is one real new moon (${n.meanEpoch}, from memory) plus whole multiples of ${n.meanMonth} days (also from memory) for every phase, with no corrections. ${mc.detail}. The limit in the check is a loose bound set after seeing this result, so this row measures the gap more than it tests it.`;
+  const names = mp.PHASES, tg = [0, 0.5, 1, 0.5];
+  $("rt").innerHTML = "<tr><th class='l'>Phase</th><th>Target</th><th>Worst deviation, " + n.roundTripSpan + "</th></tr>" +
+    names.map((nm, q) => `<tr><td class="l">${nm}</td><td>${tg[q]}</td><td>${n.roundTrip[q].toFixed(5)}</td></tr>`).join("");
+  $("limits").innerHTML = [
+    `Typing slips in a coefficient show up only if they move a phase by more than about ${n.residual.toFixed(0)} s: the largest gap left after removing the mean offset is ${n.residual.toFixed(1)} s, so any term whose size is below that cannot be vouched for by the comparison. I injected three slips of 0.001 day and one of 0.0004 day into a scratch copy and the checks caught all four; smaller ones were not tried.`,
+    `The mean offset (${n.meanTT.toFixed(1)} s, this module minus astronomy-engine) is not zero. A possible cause is that the two programs treat the Sun's apparent position differently; I did not test that, and a slip in a constant term would look the same.`,
+    `Round-trip rows use this module's own phase angle, so they test that the two halves of the module agree, not that either matches the sky; the comparison with astronomy-engine's illuminated fraction (${n.fractionSamples} times, worst difference ${n.fractionWorst.toFixed(4)}) is the outside check for that.`,
+    `Agreement with astronomy-engine is agreement with another calculation, not with an observation of the sky. Eclipses, local moonrise and the Moon's tilt toward the viewer are not computed.`,
+  ].map((s) => `<li>${esc(s)}</li>`).join("");
+}
+function fail(msg) { $("chksum").innerHTML = `<b class="bad">The tests did not run:</b> ${esc(msg)}`; }
+(async () => {
+  try {
+    const w = new Worker("runner.js", { type: "module" });
+    w.onmessage = (e) => { e.data.ok ? render(e.data.result) : fail(e.data.error); };
+    w.onerror = async () => {
+      try { const [astro, t] = await Promise.all([import("./vendor/astronomy.js"), import("./tests.js")]); render(t.runTests(mp, astro)); }
+      catch (err) { fail(err.message); }
+    };
+  } catch (err) { fail(err.message); }
+})();
+</script>
+</body>
+</html>
