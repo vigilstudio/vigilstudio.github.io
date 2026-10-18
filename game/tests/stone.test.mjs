@@ -15,6 +15,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createStone, validStoneMsg, tuneFor, stoneSpot, findTune, nightOf, NOTES, NOTE_HZ, NOTE_NAMES, TUNE_LEN, BEAT_MS, GLOW_S, REACH, REACH_SLACK, OWN_GAP_MS, RATE_PER_S, RATE_BURST } from "../js/stone.js";
 import { generateWorld, isBlocked, WORLD_SEED } from "../js/world.js";
+import { shadeCount, SLOT_MS } from "../js/shades.js";
 import { startRelay } from "./nostr-relay.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -158,10 +159,18 @@ function watch(page, label) {
 async function waitFor(page, fn, arg, timeout = 10000) {
   try { await page.waitForFunction(fn, arg, { timeout, polling: 100 }); return true; } catch { return false; }
 }
+// Milestone 31: the shades' waves come from the real clock, and a wave circling the well can drive a shade off with the three
+// players standing there, which gives each of them a help point ("shade") and breaks "adds no point" at random (the one
+// failure seen: points 1,1,1 before, 2,2,2 after, glows still 1). So, as living and shades do, the pages load on a stretch of three
+// slots with no shades (STONE_SHADES=hot instead picks a slot of four shades, to show the cause).
+const SEEDW = WORLD_SEED;
+const QUIET = (() => { const hot = process.env.STONE_SHADES === "hot"; const now = Math.floor(Date.now() / SLOT_MS); for (let s = now + 400; s < now + 40000; s++) if (hot ? shadeCount(SEEDW, s) === 4 : shadeCount(SEEDW, s) === 0 && shadeCount(SEEDW, s + 1) === 0 && shadeCount(SEEDW, s + 2) === 0) return s; throw new Error("no slot"); })();
+const quiet = () => `&shadeclock=${QUIET * SLOT_MS + 2000 - Date.now()}`;
+const againOkFor = (again, pts) => again.every((s, i) => s.rank === pts[i] && s.stats.glows === 1);
 const stoneOf = (p) => p.evaluate(() => window.__longWatch.stone());
 const press = (p, n) => p.evaluate((n) => { document.querySelector(`#stonebtns [data-note="${n}"]`).click(); }, n);
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-async function enter(page, query, room) { await page.goto(`${base}${query}#room=${room}`); await page.click("#enter"); await waitFor(page, () => window.__longWatch.self().playing, null, 5000); }
+async function enter(page, query, room) { await page.goto(`${base}${query}${quiet()}#room=${room}`); await page.click("#enter"); await waitFor(page, () => window.__longWatch.self().playing, null, 5000); }
 
 async function scenario(label, mk, query, room, timeout) {
   console.log(`\n# ${label}`);
@@ -231,8 +240,9 @@ async function scenario(label, mk, query, room, timeout) {
   await Promise.all([press(A, s0.tune[0]), press(B, s0.tune[1]), press(C, s0.tune[2])]);
   await sleep(800);
   const again = await Promise.all([A, B, C].map(stoneOf));
+  const rankNotes = againOkFor(again, pts) ? [] : await Promise.all([A, B, C].map(p => p.evaluate(() => ({ rank: window.__longWatch.rank().info, shades: window.__longWatch.shades().count }))));
   const againOk = again.every((s, i) => s.rank === pts[i] && s.stats.glows === 1);
-  ok(againOk, `a second round while it glows adds no point and no second glow${againOk ? "" : ` (points before ${pts}, after ${again.map(s => s.rank)}; stats ${JSON.stringify(again.map(s => s.stats))}; glow ${again.map(s => s.glow.toFixed(2))})`}`);
+  ok(againOk, `a second round while it glows adds no point and no second glow${againOk ? "" : ` (points before ${pts}, after ${again.map(s => s.rank)}; the rank panel says ${JSON.stringify(rankNotes)} (a point from a deed other than the stone, such as a shade driven off, shows there); stats ${JSON.stringify(again.map(s => s.stats))}; glow ${again.map(s => s.glow.toFixed(2))})`}`);
   // nothing is saved
   const saved = await A.evaluate(() => { const out = []; for (const st of [localStorage, sessionStorage]) for (let i = 0; i < st.length; i++) out.push(st.key(i) + "=" + st.getItem(st.key(i))); return out.join("\n"); });
   ok(!/stone|glow|tune|note/i.test(saved.replace(/"help":\d+/g, "")), "nothing about the stone is kept in the browser's storage");

@@ -210,8 +210,11 @@ try {
     ok((await perf(X)).shadows >= 15, `${label}: shadows are still drawn`);
     const sum = async (pg) => pg.evaluate(() => { const c = document.getElementById("view"), d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data; let s = 0; for (let i = 0; i < d.length; i += 4) s += d[i] * 3 + d[i + 1] * 5 + d[i + 2] * 7; return s; });
     if (reduce) {
-      const s1 = await sum(X); await sleep(700); const s2 = await sum(X); await sleep(700); const s3 = await sum(X);
-      ok(s1 === s2 && s2 === s3 || (Math.abs(s1 - s2) / s1 < 0.003 && Math.abs(s2 - s3) / s2 < 0.003), `${label}: the picture, shadows and flame included, does not move (to within the fireflies and the sky)`);
+      // Milestone 31: three pictures against a fixed 0.3%; now six pictures, each compared with the median, and the largest
+      // difference is printed (to within the fireflies and the sky).
+      const sums = []; for (let i = 0; i < 6; i++) { sums.push(await sum(X)); await sleep(500); }
+      const med = [...sums].sort((a, b) => a - b)[3], worst = Math.max(...sums.map(v => Math.abs(v - med) / med));
+      ok(worst < 0.003, `${label}: the picture, shadows and flame included, does not move (largest difference of 6 pictures from the middle one ${(worst * 100).toFixed(3)}%, limit 0.3%)`);
     }
     return { X, Y, ctx };
   };

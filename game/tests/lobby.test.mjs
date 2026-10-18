@@ -169,7 +169,8 @@ async function scenario(label, mk, query, rooms, timeout) {
   await E.goto(`${base}${query}#room=1`); await E.click("#look");
   ok(await waitFor(E, ([a, b]) => { const c = window.__longWatch.lobby().counts; return !!c && c[a] === 2 && c[b] === 1; }, [R1, R2], timeout), "a second page asking at the same time sees the same three players, not the first asker");
   ok(await waitFor(D, () => window.__longWatch.lobby().looking === "done", null, (LOOK_S + 8) * 1000), `asking ends by itself after ${LOOK_S} s and the answer stays on the page`);
-  ok((await lobbyOf(D)).counts[R1] === 2 && (await lobbyOf(D)).pick === R1, "the finished answer is still shown");
+  const LD = await lobbyOf(D);
+  ok(LD.counts[R1] === 2 && LD.pick === R1, `the finished answer is still shown${LD.counts[R1] === 2 && LD.pick === R1 ? "" : ` (milestone 31 diagnostics: counts ${JSON.stringify(LD.counts)}, pick ${LD.pick}, looking ${LD.looking}, heard ${LD.heard}, text "${String(LD.text).slice(0, 120)}", ${((Date.now() - t0) / 1000).toFixed(1)} s after the first ask)`}`);
   // pick the suggestion, enter, meet them
   await D.click("#lookpick");
   ok((await D.evaluate(() => location.hash)) === `#room=${R1}` && (await D.locator(`#rooms button[data-room="${R1}"]`).getAttribute("aria-pressed")) === "true", "the pick button selects the suggested lantern");

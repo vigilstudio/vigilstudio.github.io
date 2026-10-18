@@ -176,11 +176,18 @@ try {
   for (const [name, h] of HOURS_SHOWN) {
     const P = await mk(); await enter(P, q(h), "sgc" + h);
     await teleportSynced(P, [], openSpot.x, openSpot.y); await sleep(700);
-    // wait until the frame is settled (the camera and the fireflies move), then take the median of three readings
-    const reads = []; for (let i = 0; i < 3; i++) { reads.push(await measure(P)); await sleep(150); }
-    const med = (k) => reads.map(r => r[k]).sort((a, b) => a - b)[1];
-    res[name] = { player: med("player"), lantern: med("lantern"), path: med("path"), outside: reads[1].outside.map(Math.round), inside: reads[1].inside.map(Math.round), glow: (await P.evaluate(() => window.__longWatch.perf())).glow };
-    console.log(`     ${name.padEnd(9)} hour ${h}: player ${res[name].player.toFixed(2)}:1, lantern pool against the dark ${res[name].lantern.toFixed(2)}:1, path ${res[name].path.toFixed(2)}:1, dark beyond the light rgb(${res[name].outside}), tint ${res[name].glow.tint}`);
+    // wait until the frame is settled (the camera and the fireflies move): read until two readings in a row agree on the path
+    // ratio within 0.02 (at most 10 readings), then take the median of the last five
+    const reads = []; let settled = false;
+    for (let i = 0; i < 10 && !(settled && reads.length >= 5); i++) {
+      reads.push(await measure(P)); await sleep(150);
+      if (reads.length >= 2 && Math.abs(reads[reads.length - 1].path - reads[reads.length - 2].path) < 0.02) settled = true;
+    }
+    const last5 = reads.slice(-5), mid = last5[Math.floor(last5.length / 2)];
+    const med = (k) => last5.map(r => r[k]).sort((a, b) => a - b)[Math.floor(last5.length / 2)];
+    const spread = Math.max(...last5.map(r => r.path)) - Math.min(...last5.map(r => r.path));
+    res[name] = { player: med("player"), lantern: med("lantern"), path: med("path"), outside: mid.outside.map(Math.round), inside: mid.inside.map(Math.round), spread, nReads: reads.length, glow: (await P.evaluate(() => window.__longWatch.perf())).glow };
+    console.log(`     ${name.padEnd(9)} hour ${h}: player ${res[name].player.toFixed(2)}:1, lantern pool against the dark ${res[name].lantern.toFixed(2)}:1, path ${res[name].path.toFixed(2)}:1, dark beyond the light rgb(${res[name].outside}), tint ${res[name].glow.tint}; ${reads.length} readings, path spread ${spread.toFixed(3)}`);
     await shoot(P, `skyglow-${name}`);
     await P.context().close();
   }
@@ -188,7 +195,7 @@ try {
     const r = res[n], m = res.midnight;
     ok(r.player >= 3, `${n}: the player stands out from the ground round them by ${r.player.toFixed(2)}:1 (at least 3:1)`);
     ok(r.lantern >= 1.5 && r.lantern >= m.lantern * 0.95, `${n}: the lantern's pool against the dark beyond it is ${r.lantern.toFixed(2)}:1 (at least 1.5:1 and no less than midnight's ${m.lantern.toFixed(2)}:1)`);
-    ok(r.path >= 1.4 && r.path >= m.path * 0.9, `${n}: the path (ground the player walks) in the light against the ground in the dark is ${r.path.toFixed(2)}:1 (at least 1.4:1 and within a tenth of midnight's ${m.path.toFixed(2)}:1)`);
+    ok(r.path >= 1.4 && r.path >= m.path * 0.9, `${n}: the path (ground the player walks) in the light against the ground in the dark is ${r.path.toFixed(2)}:1 (at least 1.4:1, margin ${(r.path - 1.4).toFixed(3)}; within a tenth of midnight's ${m.path.toFixed(2)}:1; readings spread ${r.spread.toFixed(3)})`);
   }
   ok(res.dusk.glow.kind === "dusk" && res.dawn.glow.kind === "dawn" && res.midnight.glow.kind === "night", "the three pages drew dusk, dawn and plain night");
   ok(res.dusk.outside[2] > res.dusk.outside[0] + 10 && Math.abs(res.dawn.outside[0] - res.dawn.outside[2]) < 25 && res.dawn.outside[0] > res.midnight.outside[0] + 10, `the dark beyond the light is bluer at dusk (rgb ${res.dusk.outside}) and a lighter grey at dawn (${res.dawn.outside}) than at midnight (${res.midnight.outside})`);

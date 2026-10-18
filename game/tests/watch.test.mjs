@@ -271,9 +271,13 @@ async function scenario(label, mk, query, room, opts = {}) {
   const dist = (s) => Math.hypot(s.x - lh.x, s.y - lh.y);
   ok(a2 && b2 && c2 && [a2, b2, c2].every(s => dist(s) >= LIGHTHOUSE_RADIUS - 0.05), `the passing shade now stays out of the beam on every page (${[a2, b2, c2].map(s => s ? dist(s).toFixed(2) : "?").join(", ")} tiles from the lighthouse; the beam is ${LIGHTHOUSE_RADIUS})`);
   ok(a2 && b2 && c2 && Math.hypot(a2.x - b2.x, a2.y - b2.y) < 0.8 && Math.hypot(a2.x - c2.x, a2.y - c2.y) < 0.8, "and the pages put it in the same place");
-  await setClock(A, S1.ms); await setClock(B, S1.ms); await setClock(C, S1.ms); await sleep(500);
+  await setClock(A, S1.ms); await setClock(B, S1.ms); await setClock(C, S1.ms);
+  // Milestone 31: the fade is eased, so a fixed 500 ms wait failed once in about ten runs with the alpha still on its way down.
+  // Wait (up to 5 s) until every page shows the shade gone, then say how long it took.
+  const tFade = Date.now();
+  const faded = (await Promise.all(all.map(p => waitFor(p, (k) => { const s = window.__longWatch.shades().list.find(q => q.k === k); return !s || s.alpha < 0.05; }, S1.k, 5000)))).every(Boolean);
   const f1 = await Promise.all(all.map(p => shadeView(p, S1.k)));
-  ok(f1.every(s => !s || s.alpha < 0.05), "the shade that was circling the lighthouse has faded away on every page");
+  ok(faded && f1.every(s => !s || s.alpha < 0.05), `the shade that was circling the lighthouse has faded away on every page (${Date.now() - tFade} ms after the clock moved; alpha ${f1.map(s => s ? s.alpha.toFixed(3) : "gone").join(", ")})`);
   const near = await C.evaluate(([x, y]) => window.__longWatch.shades().list.filter(s => s.alpha > 0.3 && Math.hypot(s.x - x, s.y - y) < 14 - 0.05).length, [lh.x, lh.y]);
   ok(near === 0, "no shade that can be seen is inside the beam");
   ok(!(await C.evaluate(() => window.__longWatch.shades().snuffed)), "the bystander was never snuffed");

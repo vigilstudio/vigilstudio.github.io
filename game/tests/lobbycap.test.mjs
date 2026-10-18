@@ -125,7 +125,9 @@ try {
   ok(L.pick === ROOM_A && L.text.includes(`Lantern ${ROOM_A} looks busiest`) && /guess/i.test(L.text), `the hint still names the busiest lantern, ${ROOM_A}, and calls it a guess`);
   ok((await lobbyOf(D)).heard <= LOBBY_PEERS, `the asker was linked to ${(await lobbyOf(D)).heard} lobby pages, not ${PAGES}`);
   const s2 = await snap(pages);
-  ok(s2.every((x, i) => x.inLobby === s1[i].inLobby), "the asker's visit pushed nobody out of the lobby and let nobody in");
+  const changed = s2.map((x, i) => ({ i, before: s1[i], after: x })).filter(c => c.after.inLobby !== c.before.inLobby);
+  ok(changed.length === 0, "the asker's visit pushed nobody out of the lobby and let nobody in");
+  if (changed.length) console.log("  milestone 31 diagnostics, pages whose lobby state changed (before, after):", JSON.stringify(changed.map(c => ({ page: c.i, before: { inLobby: c.before.inLobby, links: c.before.links, crowdLeaves: c.before.crowdLeaves }, after: { inLobby: c.after.inLobby, links: c.after.links, crowdLeaves: c.after.crowdLeaves } }))), "asker heard", (await lobbyOf(D)).heard, "stayers", stayers.length);
   await waitFor(D, () => window.__longWatch.lobby().looking === "done", null, 30000);
   // quiet: the stayers leave their lanterns, the leavers should come back to the lobby
   const leavers = pages.filter((_, i) => !s1[i].inLobby);
