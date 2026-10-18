@@ -78,8 +78,8 @@ Habits that have proven themselves. Follow them unless the run has a good reason
   background loop (Monitor, every 5 min) runs `git fetch -q && git log --oneline <start sha>..origin/main -- game/`
   and on any output the chair stops the game builder at once. If main's `game/` or piece table moved (start sha from
   the brief's last line), the game step stops and the advisor redoes that part of the brief. Push only in its own
-  command after reading test and scan output (10-15 12:40: push after a failed test; 10-16 08:40, 10-17 20:50, 10-18
-  05:38, 09:31: about 70, 118, 50 and 45 min of game work lost, each seen only after the builder finished).
+  command after reading test and scan output (10-15 12:40: push after a failed test; 10-16 to 10-18 17:58: five
+  losses of 45-118 min of game work, each seen only after the builder had started or finished).
 - Every run the keeper compares each Workbench game passage (the Long Watch paragraph, the letter) with
   game/ROADMAP's "Done" list and the CHANGELOG's online-play status, updates what it may edit, and names any stale
   sentence in a protected passage for the owner (promoted from an experiment, seven runs: it flagged the protected
@@ -119,6 +119,9 @@ Habits that have proven themselves. Follow them unless the run has a good reason
 
 Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would show it helped.`
 
+- (started 2026-10-18) The game builder breaks each new test check once (a scratch edit) and sees it fail before
+  counting it. Check: no tester or review finds a game check that passes vacuously (17:58: flame flood check did).
+
 ## Proposals for the owner
 
 Changes only the owner can make to the routine. The owner can delete a line once it is handled.
@@ -132,16 +135,14 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - (2026-10-15) The studio's CLAUDE.md says "Add a journal entry before you finish", and every subagent reads it; it
   should say only the chair adds the entry. Keeper, toy refiner, fixer, toy builder, profile agent (twice) and a
   fix-up agent (10-18 04:22, an unrequested stub the chair replaced) have all written their own.
-- (2026-10-16) A time budget for the game step, set in the routine. Game builder about 50-150 min a run, and about
-  4 h on 10-18 16:52 (a flake-fixing milestone; the skill's 45-min time-box was not kept) while the others waited
-  (04:22: mostly the 5x loop, spares.test about 110 s a run). Options: the builder runs the 5x loop only on files its increment touched and the tester (Sonnet, which at
-  04:22 found a report.test flake the builder had passed 5/5) runs the rest, or a script runs loop.mjs over every file
-  in the background. Stop-hook reminders about uncommitted changes are noise mid-run (the chair commits only at the
-  end); the routine could turn that hook off until then.
-- (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (about 2 h). Another run pushed mid-run six
-  times, twice in 4 h on 10-18 (05:38, 09:31: runs started minutes apart, so the schedule may fire twice), dropping
-  up to 118 min of game work and ~2.3M subagent tokens at 09:31. Fix the schedule, or push a claim at start
-  (`claim/<milestone>` branch); a run finding a claim under 4 h old skips the game. Start on `main` (19:17: detached).
+- (2026-10-16) A time budget for the game step, set in the routine. Game builder 50-150 min a run, 4 h at 10-18 16:52,
+  mostly the 5x loop, while the others waited. Options: the builder loops only files its increment touched and a
+  Sonnet tester (found a flake the builder passed 5/5, 04:22) the rest, or a script runs loop.mjs in the background.
+  Mid-run stop-hook reminders about uncommitted changes are noise (the chair commits at the end).
+- (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (about 2 h). Another run's push collided seven
+  times, three on 10-18 (05:38, 09:31, 17:58: the schedule may fire twice), dropping up to 118 min of game work and
+  ~2.3M subagent tokens. Fix the schedule, or push a `claim/<milestone>` branch at start; a run finding a claim
+  under 4 h old skips the game. Start on `main` (19:17: detached).
 - (2026-10-16) `tools/game_patchnotes.py` splits game/CHANGELOG.md on `### ` only, so an entry under `## ` vanishes
   from the patch notes (07:20, review only), and it drops every paragraph not labelled Players can now / Fixed /
   Unverified (15:30: a known limit). It should stop on any other heading level and print each dropped paragraph.
@@ -153,11 +154,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-17: Direction updated; A Loan's Slow Start adds personal finance.
-- 2026-10-17: vigil-toy skill now checks for sideways scroll at 375 px after every press while playing; the toy
-  refiner found one in Upload 0046 after the first press, which page_check (before any press) had passed.
-- 2026-10-17: caveat-grep experiment judged (six runs) and promoted to Practices: no review found a dropped caveat;
-  its hits were reflowed or rewritten sentences with the caveat kept. Experiments now empty; next reflector may add one.
 - 2026-10-17: game-loop proposal updated (game builder about 50 min, tester about 33; stop-hook noise again). Not
   acted on: the tester's fix and its before/after counts reached the CHANGELOG only through review although
   vigil-game step 4 asks testers to add them (watch next run before editing the skill again); no overlapping run.
@@ -267,3 +263,12 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-18: game-loop proposal updated with the 4 h game step (16:52). Not acted on: review's four overclaims
   (citation "all rows", nearest-vowel count using memory rows, `both` docs "explains" for a weakened check, "made
   steadier"; status-words practice); 5 vowel rows from search summaries (proxy proposal); no overlap this run.
+- 2026-10-18: vigil-advisor skill now fetches before the brief and takes the start sha, milestone and numbers from
+  origin/main; at 17:58 the brief used an unfetched ref, the chair launched the game builder on milestone 31 without
+  re-checking, and about 50 min of work was dropped when another run's 31 was found on main.
+- 2026-10-18: new experiment, the game builder breaks each new test check once before counting it; the 17:58 tester
+  found the flame flood check passed vacuously.
+- 2026-10-18: overlap proposal and fetch practice evidence updated (seventh collision, 17:58); both and the game-loop
+  proposal shortened to keep the file near 150 lines. Not acted
+  on: refiners found the Pillow FS recipe and review one false comment (refine and status-words practices working);
+  security 0 BLOCK; toy and keeper as briefed.
