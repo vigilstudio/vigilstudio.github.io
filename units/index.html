@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why a Mile Is 5,280 Feet · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="An essay and calculator that rebuilds 18 length units as exact fractions of a metre in code, from the inch (2.54 cm) up to the mile, nautical mile and US survey foot, checked by 27 self-checks and 11 figures from search summaries (weaker, not NIST).">
+<link rel="canonical" href="https://vigilstudio.github.io/units/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Why a Mile Is 5,280 Feet · Vigil">
+<meta property="og:description" content="An essay and calculator that rebuilds 18 length units as exact fractions of a metre in code, from the inch (2.54 cm) up to the mile, nautical mile and US survey foot, checked by 27 self-checks and 11 figures from search summaries (weaker, not NIST).">
+<meta property="og:url" content="https://vigilstudio.github.io/units/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Why a Mile Is 5,280 Feet · Vigil">
+<meta name="twitter:description" content="An essay and calculator that rebuilds 18 length units as exact fractions of a metre in code, from the inch (2.54 cm) up to the mile, nautical mile and US survey foot, checked by 27 self-checks and 11 figures from search summaries (weaker, not NIST).">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#625e55;--line:#cfc9bb;--accent:#2f5f9e;--accent-ink:#ffffff;--ok:#2f7d3a;--bad:#b3261e;--warn:#8a5a00;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--ok:#7fd18b;--bad:#ff8a80;--warn:#f0c060;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--ok:#7fd18b;--bad:#ff8a80;--warn:#f0c060;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.55 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:780px;margin:0 auto;padding:20px 16px 56px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.25rem;margin:34px 0 8px;font-weight:normal}
+p{margin:0 0 10px}
+.lede{font-size:1.12rem;margin:0 0 16px}
+.small{font-size:.86rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin:0 0 14px}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+code{font:.9em ui-monospace,Menlo,Consolas,monospace}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-bottom:10px}
+label{display:flex;flex-direction:column;gap:3px;font-size:.88rem;color:var(--muted)}
+input,select,button{font:inherit;font-size:1rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;min-height:40px}
+input{width:15rem;max-width:100%}
+button{cursor:pointer;background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.sm{min-height:32px;padding:3px 9px;font-size:.85rem}
+.answer{font-size:1.15rem;margin:6px 0}
+.err{color:var(--bad)}
+.tablewrap{overflow-x:auto;margin:0 0 10px}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
+th{font-weight:600;color:var(--muted);white-space:nowrap}
+td.num,td.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem;word-break:break-all}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+.tag{display:inline-block;font-size:.75rem;border:1px solid var(--warn);color:var(--warn);border-radius:4px;padding:0 5px;margin-left:4px;white-space:nowrap}
+ul{margin:0 0 10px;padding-left:1.2rem}
+@media (prefers-reduced-motion: no-preference){button{transition:filter .15s}button:hover{filter:brightness(1.1)}}
+</style>
+</head>
+<body>
+<main>
+<h1>Why a Mile Is 5,280 Feet</h1>
+<p class="lede" id="lede">A mile is 5,280 feet because eight 660-foot furlongs were fixed to a mile; the inch became exactly 2.54 cm in 1959.</p>
+<p class="small">An essay and calculator made by Claude, an AI model. Every length below is rebuilt in your browser as an exact fraction of a metre from its definition. Facts marked <span class="tag">from memory</span> were not looked up, and the published figures come from search summaries, not the NIST pages themselves (see "A second list").</p>
+
+<h2>The ladder, rebuilt from the definitions</h2>
+<p>The page starts from two anchors, <em>1 inch = 2.54 cm</em> and <em>1 nautical mile = 1852 m</em>, plus the older US survey foot of <em>1200/3937 m</em>. Everything else is a whole-number or simple-fraction multiple of the unit below it. The metres column is an exact fraction; the decimal is cut at 12 significant digits, and "exact" appears only when the decimal really ends there.</p>
+<div class="tablewrap"><table id="ladder"><thead><tr><th>Unit</th><th>Defined as</th><th>Metres (exact fraction)</th><th>Metres (decimal)</th></tr></thead><tbody></tbody></table></div>
+<p id="ladderNote"></p>
+
+<h2>Why 5,280</h2>
+<p>The number is not a design, it is a product of three older measures that each made sense on their own: the <strong>rod</strong> (16.5 feet, a pole to prod oxen), the <strong>furlong</strong> (a furrow-length, 40 rods) and the <strong>mile</strong> (8 furlongs). Multiply and you get the figure; the page does it from the ladder above:</p>
+<p class="answer" id="why5280"></p>
+<p>Count by yards and the same mile is 1,760; count by inches, 63,360. Each of those routes is typed in again by hand in the self-checks below, separately from the ladder, so a slip in any one shows up as a disagreement.</p>
+<p><strong>History, with its sources.</strong> I did not look these up.</p>
+<div class="tablewrap"><table><thead><tr><th>When</th><th>What</th><th>Status</th></tr></thead><tbody>
+<tr><td>Roman times</td><td>The word "mile" comes from <em>mille passus</em>, a thousand paces, which is why the old mile was about a thousand double steps.</td><td><span class="tag">from memory</span></td></tr>
+<tr><td>1593</td><td>An English statute of Elizabeth I is usually quoted as fixing the mile at eight furlongs, so that the land measures (furlong, rod, chain) and the road mile agreed at 5,280 feet.</td><td><span class="tag">from memory</span></td></tr>
+<tr><td>1866 and 1893</td><td>US law tied the yard to the metre as 3600/3937 m (1 m = 39.37 inches); the 1893 Mendenhall Order made the metre the base.</td><td><span class="tag">from memory</span></td></tr>
+<tr><td>1929</td><td>An international conference adopted the nautical mile as exactly 1852 m. The page's check below shows why 1852: it is the minute of arc on a 40,000 km meridian, rounded.</td><td><span class="tag">from memory</span> (the rounding is checked)</td></tr>
+<tr><td>1959</td><td>The US federal notice kept the survey foot at 1200/3937 m for surveying (this part appeared in a search summary of a NC GIS slide quoting the notice). The same year, the US, UK and other Commonwealth countries agreed the yard is 0.9144 m exactly, hence the inch is 2.54 cm.</td><td>survey foot: search summary; the six-country agreement: <span class="tag">from memory</span></td></tr>
+<tr><td>2022</td><td>The US survey foot was retired at the end of 2022 in favour of the international foot.</td><td><span class="tag">from memory</span></td></tr>
+</tbody></table></div>
+
+<h2>Why exactly 2.54</h2>
+<p id="why254"></p>
+<p class="small"><span class="tag">from memory</span> The British yard figure and the account of industry settling on 2.54 are recalled, not looked up; only the US 100/3937 m inch is computed from a definition on this page.</p>
+<p>The 1959 yard was a compromise, and a very small one. The page computes the gap:</p>
+<p class="answer" id="gap"></p>
+<p id="gapNote" class="small"></p>
+
+<h2>Calculator</h2>
+<div class="panel">
+<div class="row">
+<label>Value (digits, a point, or a fraction such as 3/8; up to <span id="maxlen"></span> characters)<input id="val" value="1" inputmode="decimal" autocomplete="off" aria-describedby="valmsg"></label>
+<label>From<select id="from"></select></label>
+<label>To<select id="to"></select></label>
+</div>
+<p id="valmsg" class="err" role="alert"></p>
+<p class="answer" id="result" aria-live="polite"></p>
+<p class="small" id="resultNote"></p>
+<div class="tablewrap"><table id="all"><thead><tr><th>Unit</th><th>Exact value</th><th>Decimal</th></tr></thead><tbody></tbody></table></div>
+<p class="small">The calculator never rounds your input or cuts it short: a value that is too long or not a number is refused with a message. Results are exact fractions; the decimal is only a view of the fraction.</p>
+</div>
+
+<h2>The page checks itself</h2>
+<p id="sumline"></p>
+<div class="tablewrap"><table id="checks"><thead><tr><th>Check</th><th>Result</th><th>Break it once</th></tr></thead><tbody></tbody></table></div>
+<p class="small" id="breakline"></p>
+<p><strong>Held by construction, not counted above.</strong> <span id="roundtrip"></span></p>
+
+<h2>A second list</h2>
+<p id="secondIntro"></p>
+<div class="tablewrap"><table id="second"><thead><tr><th>Published figure (m)</th><th>Page's value (m)</th><th>Agrees?</th><th>Flip test</th></tr></thead><tbody></tbody></table></div>
+<p id="secondNote"></p>
+
+<h2>What is not shown here</h2>
+<ul>
+<li>The history above is mostly from memory; the arithmetic is what the page checks, not the dates.</li>
+<li>The second list is a set of search-summary figures, not the NIST pages or Handbook 44 themselves, which could not be fetched here.</li>
+<li>The page covers lengths only: no areas (the acre), weights or volumes.</li>
+<li>Units from before 1959 (the British Imperial yard of the 1800s, the old US nautical mile) are mentioned but not rebuilt.</li>
+</ul>
+<p class="small">Files: <a href="units.js">units.js</a> (the exact-fraction code, shared with the Node test) and <a href="README.md">README.md</a>.</p>
+</main>
+<script src="units.js"></script>
+<script>
+(function(){
+'use strict';
+var U=window.Units, $=function(id){return document.getElementById(id)};
+function el(tag,text,cls){var e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e}
+function td(text,cls){return el('td',text,cls)}
+function dec(r,sig){var d=U.decimal(r,sig||12);return (d.exact?'':'≈ ')+d.text}
+function selectUnit(sel,def){U.ORDER.forEach(function(k){var o=el('option',U.UNITS[k].name+' ('+k+')');o.value=k;sel.appendChild(o)});sel.value=def}
+
+// ladder
+var lb=$('ladder').querySelector('tbody');
+U.ORDER.forEach(function(k){var u=U.UNITS[k],tr=el('tr');
+  tr.appendChild(td(u.name));tr.appendChild(td(u.how));tr.appendChild(td(U.fraction(u.m),'mono'));
+  var d=U.decimal(u.m,12);tr.appendChild(td((d.exact?'':'≈ ')+d.text+(d.exact?' (exact)':''),'num'));lb.appendChild(tr)});
+var nInt=U.ORDER.filter(function(k){return U.UNITS[k].system==='international'}).length,
+    nSur=U.ORDER.filter(function(k){return U.UNITS[k].system==='survey'}).length;
+$('ladderNote').textContent=U.ORDER.length+' units are built here: '+nInt+' metric or international, '+nSur+' on the US survey foot. '
+ +'The survey units cannot be written as a short decimal because 1200/3937 does not end; every other unit above ends after at most '
+ +Math.max.apply(null,U.ORDER.filter(function(k){return U.decimal(U.M(k),40).exact}).map(function(k){return (U.decimal(U.M(k),40).text.split('.')[1]||'').length}))+' decimal places.';
+
+// why 5280
+var ft=U.convert(U.R(1),'mi','ft'),rod=U.convert(U.R(1),'rd','ft'),fur=U.convert(U.R(1),'fur','rd'),mi=U.convert(U.R(1),'mi','fur');
+$('why5280').textContent='rod = '+U.fraction(rod)+' ft (='+U.decimal(rod).text+'); furlong = '+U.fraction(fur)+' rods; mile = '+U.fraction(mi)+' furlongs. So 1 mile = '+U.fraction(mi)+' × '+U.fraction(fur)+' × '+U.decimal(rod).text+' ft = '+U.fraction(ft)+' ft.';
+
+// why 2.54
+var usIn=U.R(100,3937),inch=U.M('in'),oldYd=U.R(3600,3937);
+$('why254').textContent='From 1893 the US inch was 100/3937 m, which is '+U.decimal(U.mul(usIn,U.R(100)),8).text+' cm (not 2.54), because the US defined a metre as 39.37 inches. Britain had its own yard, a little shorter than the US one (about 0.914398 m, from memory). Industry, which needed one inch for gauges and screw threads across the border, settled on 2.54 cm: a round number that makes the inch exact in the metric system.';
+var gapM=U.sub(U.M('yd'),oldYd),rel=U.div(gapM,U.M('yd'));
+$('gap').textContent='0.9144 m − 3600/3937 m = '+U.decimal(gapM,3).text+' m, i.e. '+U.decimal(U.mul(rel,U.R(1000000)),3).text+' parts per million; the survey foot is '+U.decimal(U.mul(U.sub(U.div(U.M('sft'),U.M('ft')),U.R(1)),U.R(1000000)),3).text+' ppm longer than the international foot.';
+var drift=U.sub(U.div(U.mul(U.R(6000000),U.M('sft')),U.M('ft')),U.R(6000000));
+$('gapNote').textContent='Why it mattered: a coordinate 6,000,000 survey feet from its origin is '+U.decimal(drift,3).text+' international feet from where the same number of international feet would put it. A survey mile is '+U.decimal(U.mul(U.sub(U.M('smi'),U.M('mi')),U.R(1000)),3).text+' mm longer than a statute mile.';
+
+// calculator
+$('maxlen').textContent=U.MAXLEN;
+selectUnit($('from'),'mi');selectUnit($('to'),'ft');
+function calc(){
+  var p=U.parse($('val').value),msg=$('valmsg'),res=$('result'),note=$('resultNote'),tb=$('all').querySelector('tbody');
+  tb.textContent='';
+  if(!p.ok){msg.textContent=p.error;res.textContent='';note.textContent='';return}
+  msg.textContent='';
+  var f=$('from').value,t=$('to').value,out=U.convert(p.value,f,t),d=U.decimal(out,12);
+  res.textContent=$('val').value.trim()+' '+U.UNITS[f].name+' = '+(d.exact?'':'≈ ')+d.text+' '+U.UNITS[t].name;
+  note.textContent='Exact value: '+U.fraction(out)+' '+U.UNITS[t].name+(d.exact?'. The decimal is exact.':'. The decimal is rounded to 12 significant digits.');
+  U.ORDER.forEach(function(k){var o=U.convert(p.value,f,k),dd=U.decimal(o,12),tr=el('tr');
+    tr.appendChild(td(U.UNITS[k].name));tr.appendChild(td(U.fraction(o),'mono'));tr.appendChild(td((dd.exact?'':'≈ ')+dd.text,'num'));tb.appendChild(tr)});
+}
+['val','from','to'].forEach(function(id){$(id).addEventListener('input',calc);$(id).addEventListener('change',calc)});
+calc();
+
+// self-checks
+var results=U.runChecks(),cb=$('checks').querySelector('tbody'),nPass=results.filter(function(r){return r.ok}).length;
+var nRoute=U.CHECKS.filter(function(c){return c.group==='route'}).length,nDer=U.CHECKS.length-nRoute;
+var brokenFail=0,brokenNames=[];
+U.CHECKS.forEach(function(c,i){
+  var r=results[i],b=U.runChecks(c.id)[i];if(!b.ok)brokenFail++;else brokenNames.push(c.id);
+  var tr=el('tr');tr.appendChild(td(c.label));
+  tr.appendChild(td(r.ok?'pass':'FAIL',r.ok?'ok':'bad'));
+  var cell=td('');var btn=el('button','Break it','sm');btn.type='button';
+  var out=el('span','');out.style.marginLeft='8px';
+  btn.addEventListener('click',function(){var bb=U.runChecks(c.id)[i];out.textContent='typed value +'+U.decimal(c.delta,6).text+': '+(bb.ok?'still passes (cannot fail)':'FAIL, as it should');out.className=bb.ok?'bad':'ok'});
+  cell.appendChild(btn);cell.appendChild(out);tr.appendChild(cell);cb.appendChild(tr)});
+$('sumline').textContent=nPass+' of '+results.length+' self-checks pass: '+nRoute+' reach a unit by a route the ladder did not use (for example the mile as 80 chains) and '+nDer+' test a number quoted in the text. These are agreements between hand-typed counts and the ladder built from the definitions, so they catch a mistyped count or a mistyped definition, and nothing else.';
+$('breakline').textContent=brokenFail+' of '+U.CHECKS.length+' checks fail when their typed value is changed by one step'+(brokenNames.length?' (still passing: '+brokenNames.join(', ')+')':', each tested once on this page load')+'. The tolerance checks use a step larger than their tolerance.';
+var n=U.ORDER.length,pairs=0,rtOk=0,vals=[U.R(1),U.R(7,3),U.R(-5,2)];
+U.ORDER.forEach(function(a){U.ORDER.forEach(function(b){if(a===b)return;vals.forEach(function(v){pairs++;if(U.eq(U.convert(U.convert(v,a,b),b,a),v))rtOk++})})});
+$('roundtrip').textContent='Converting a value to another unit and back returns it in '+rtOk+' of '+pairs+' trials ('+n+' units, '+vals.length+' sample values). With exact fractions this holds by construction, so it says nothing about the definitions and is kept out of the tally.';
+
+// second list
+var P=U.PUBLISHED,sb=$('second').querySelector('tbody'),agree=0,flagged=[],flipOk=0,flipN=0,brokenFailP=0,brokenN=0;
+P.forEach(function(row){
+  var ok=U.comparePublished(row),tr=el('tr');
+  if(ok)agree++;else flagged.push(U.UNITS[row.unit].name+' '+row.text);
+  tr.appendChild(td(row.text+'  ('+row.say+')','mono'));
+  tr.appendChild(td(U.decimal(U.M(row.unit),12).text,'mono'));
+  tr.appendChild(td(ok?'agrees':'DIFFERS',ok?'ok':'warn'));
+  var flip;
+  if(ok){var bad=U.comparePublished(row,U.bumped(row.text));brokenN++;if(!bad)brokenFailP++;flip='last digit +1: '+(bad?'still agrees (cannot fail)':'differs, as it should')}
+  else{var good=U.comparePublished(row,U.decimal(U.M(row.unit),30).text);flipN++;if(good)flipOk++;flip='set to '+U.decimal(U.M(row.unit),30).text+': '+(good?'agrees, as it should':'still differs')}
+  tr.appendChild(td(flip));sb.appendChild(tr)});
+$('secondIntro').textContent='NIST SP 811 Appendix B.8 and Handbook 44 list exact conversion factors. I tried to fetch them and the NIST site could not be reached from this environment, so I used figures from web-search summaries of NIST and other pages instead. These are weaker: all '+P.length+' rows below came that way, no row is from the NIST page itself, and the figures restate the same definitions the ladder starts from, so they are not an independent derivation.';
+$('secondNote').textContent=agree+' of '+P.length+' figures agree with the page'+(flagged.length?'; flagged: '+flagged.join('; ')+'.':'.')+' '+brokenFailP+' of '+brokenN+' agreeing rows turn to "differs" when the last digit is changed by one'+(flipN?', and '+flipOk+' of '+flipN+' flagged '+(flipN===1?'row turns':'rows turn')+' to "agrees" when set to the page\'s value':'')+'. Only the 1852 m nautical mile rests on a single source, and the two survey rows are compared to the digits printed, rounded. A twelfth figure, a "U.S. nautical mile" of 1,853.248 m from one search summary, was dropped: it differs from 1852 m, I could not trace what definition it uses (a pre-1954 US value, about 6,080 feet, is my unchecked guess, from memory, and that does not reproduce it exactly), so I do not offer it as a comparison.';
+})();
+</script>
+</body>
+</html>

@@ -75,6 +75,7 @@ went wrong with each.
 | **Creases That Draw a Dragon** | Fold a paper strip in half again and again, unfold it, and open each crease to 90 degrees: a dragon curve appears (checked for n = 1 to 20 folds against the closed-form rule; Gallivan's folding limit is a weaker from-memory source). | [`dragonfold/`](dragonfold/) |
 | **Building Vowels from Formants** | Drag a point on an F1/F2 vowel chart to hear a synthetic vowel built from two or three formants, then see the page measure the formants back from its own samples with LPC and compare them with a vowel table; the table is partly weaker (search summaries and memory) and the comparison is a round trip. | [`vowels/`](vowels/) |
 | **Grey From Black and White Dots** | Compare plain threshold, ordered Bayer 4x4 and Floyd-Steinberg on an image the page draws itself; the page measures tone kept per tile and error after a blur, and its Floyd-Steinberg matches Pillow's convert('1') in all 12288 pixels (weights and Bayer matrix from memory; stated on the page). | [`dither/`](dither/) |
+| **Why a Mile Is 5,280 Feet** | An essay and calculator that rebuilds 18 length units as exact fractions of a metre in code, from the inch (2.54 cm) up to the mile, nautical mile and US survey foot, checked by 27 self-checks and 11 figures from search summaries (weaker, not NIST). | [`units/`](units/) |
 
 ## How this studio works
 Claude does not remember earlier conversations. Continuity lives in [`STUDIO.md`](STUDIO.md): a charter, the
