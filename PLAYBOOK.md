@@ -96,8 +96,10 @@ Habits that have proven themselves. Follow them unless the run has a good reason
   names the range the code supports), and a search-summary or memory value says so where shown; "N checks against
   X" counts only checks that compare with X; a licence names code and data separately; each statistic says what was
   counted and what chance it means; known limits and roadmap lines match this run's measurements; "now" is cut from
-  text that stays up. After any later edit, re-read the words describing the edited thing (promoted; review still
-  finds some: 10-18 09:22 "15 checks against astronomy-engine" when 4 were, "any date" for 1800 to 2199).
+  text that stays up. A name for what a mechanism is ("motion work") is checked against the drawn or computed
+  geometry, and each test's expected value names its source or derivation. After any later edit, re-read the words
+  describing the edited thing (10-18 09:22 "15 checks" when 4 were; 20:21 "motion work" with the hour wheel off the
+  minute axis, a Metonic test target off by 10x).
 - Studio tables and pages have no subject-tag field: briefs never ask for a tag (15:30: the keeper looked, found none).
 - Commit messages leave one blank line between the body and the `Co-Authored-By` / `Claude-Session` trailers; with a
   single newline git folds the trailer into the subject, and the profile README showed it (2026-10-16 14:26).
@@ -141,10 +143,10 @@ Changes only the owner can make to the routine. The owner can delete a line once
   mostly the 5x loop, while the others waited. Options: the builder loops only files its increment touched and a
   Sonnet tester (found a flake the builder passed 5/5, 04:22) the rest, or a script runs loop.mjs in the background.
   Mid-run stop-hook reminders about uncommitted changes are noise (the chair commits at the end).
-- (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (about 2 h). Another run's push collided seven
-  times, three on 10-18 (05:38, 09:31, 17:58: the schedule may fire twice), dropping up to 118 min of game work and
-  ~2.3M subagent tokens. Fix the schedule, or push a `claim/<milestone>` branch at start; a run finding a claim
-  under 4 h old skips the game. Start on `main` (19:17: detached).
+- (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (about 2 h). Runs collided nine times (05:38,
+  09:31, 17:58, 18:15; 20:21 began 3 min after the last ended, whose profile push then forced a reset and redo),
+  dropping up to 3 h of game work and ~2.3M subagent tokens. Fix the schedule (at least 30 min gap), or push a
+  `claim/<milestone>` branch at start; a run finding a claim under 4 h old skips the game. Start on `main`.
 - (2026-10-16) `tools/game_patchnotes.py` splits game/CHANGELOG.md on `### ` only, so an entry under `## ` vanishes
   from the patch notes (07:20, review only), and it drops every paragraph not labelled Players can now / Fixed /
   Unverified (15:30: a known limit). It should stop on any other heading level and print each dropped paragraph.
@@ -156,14 +158,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-17: new experiment, the game tester logs pass counts to a scratchpad file as it goes; its 13:22 report never
-  reached the chair, so its work went uncredited (thin or interim hand-backs in earlier runs too).
-- 2026-10-17: Direction updated; Where the Current Goes adds electrical circuits. Not acted on: a message-kind name
-  collision in the music stone was caught by its own tests (3/5, 4/5 before the rename; tests working); review's four
-  wording fixes ("two independent methods" though one parser, a message name, "everyone nearby", a doubled rank
-  line), as the status-words practice already asks; one unexplained WebRTC failure named in the journal.
-- 2026-10-17: vigil-game skill now puts known limits under **Unverified:** (game_patchnotes.py keeps only the three
-  labelled bullets) and has testers name fail-then-pass files in **Tested:**; review added both at 15:30.
 - 2026-10-17: patch-notes proposal extended: the tool silently drops unlabelled paragraphs (15:30 known limit).
 - 2026-10-17: new practice, briefs never ask for a subject tag; none exists and the 15:30 keeper searched for one.
   Not acted on: tennis "exact" caveat and backtick (status-words practice); tester-log experiment not judged (one run,
@@ -276,3 +270,12 @@ Changes only the owner can make to the routine. The owner can delete a line once
   flake hunt and was found only at review. Not acted on: units/ dropped an untraced 12th row and labelled search-summary
   figures (status-words practice working); Crop 60 refiner fixed 2 small bugs; overlap proposal stands (eighth case);
   break-checks-once experiment not judged (one run).
+- 2026-10-18: status-words practice now checks a mechanism's name against the drawn geometry and asks each test's
+  expected value for a source or derivation; 20:21 review found "motion work" with the hour wheel off the minute axis
+  and a Metonic test target off by 10x, which builder, refiner and tester all missed.
+- 2026-10-18: vigil-keeper skill now copies online-play status from game/CHANGELOG and Direction and never implies a
+  later milestone was played online; 20:21 review corrected the keeper's online-play overclaim (game builder 00:48 too).
+- 2026-10-18: overlap proposal updated with the ninth collision (20:21 began 3 min after the last run ended; its
+  profile push forced a reset and redo) and a 30 min gap. Not acted on: "never covers" true only at the centre and
+  memory facts stated as fact (status-words practice); game builder about 88 min (game-loop proposal stands);
+  break-checks-once experiment not judged (two runs; glitter checks each broken once, none vacuous in review).

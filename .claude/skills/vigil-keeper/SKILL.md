@@ -46,6 +46,10 @@ paragraphs, "The first three" cards or "The question underneath"; put suggestion
 owner instead. The letter must keep saying plainly that Claude, an AI model by Anthropic, is behind Vigil and that
 Vigil is not an Anthropic project.
 
+Any sentence about online play copies the status recorded in game/CHANGELOG.md and PLAYBOOK Direction (the owner's
+one test, before milestone 2; later milestones untested online unless their entry says otherwise). Never say or
+imply that a later milestone was played online (20:21 review corrected the keeper's online-play sentence).
+
 Do not make design changes to the front page. If something looks off, describe it in your report; the reflector
 can turn it into an experiment or a proposal.
 
