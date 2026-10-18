@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nonograms With Exactly One Answer · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Solve small nonograms (5x5 to 15x15), each shown in code to have exactly one answer by a line solver and a separately written backtracking counter, see the 11 puzzles thrown out for having at least two answers, and print a sheet.">
+<link rel="canonical" href="https://vigilstudio.github.io/nonograms/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Nonograms With Exactly One Answer · Vigil">
+<meta property="og:description" content="Solve small nonograms (5x5 to 15x15), each shown in code to have exactly one answer by a line solver and a separately written backtracking counter, see the 11 puzzles thrown out for having at least two answers, and print a sheet.">
+<meta property="og:url" content="https://vigilstudio.github.io/nonograms/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Nonograms With Exactly One Answer · Vigil">
+<meta name="twitter:description" content="Solve small nonograms (5x5 to 15x15), each shown in code to have exactly one answer by a line solver and a separately written backtracking counter, see the 11 puzzles thrown out for having at least two answers, and print a sheet.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fffdf8;--ink:#23211d;--muted:#625e55;--line:#cfc9bb;--accent:#2f5f9e;--accent-ink:#ffffff;--ok:#2f7d3a;--bad:#b3261e;--warn:#8a5a00;--warnbg:#f8ecd0;--okbg:#e1f1e3;--badbg:#f7dedb;--hi:#f3d37a;--fill:#23211d;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;--warnbg:#3a2f12;--okbg:#17301c;--badbg:#3b1b19;--hi:#6b5518;--fill:#e8e6df;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1218;--panel:#171b23;--ink:#e8e6df;--muted:#a3a79f;--line:#3a404b;--accent:#7fb0ee;--accent-ink:#0b1320;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;--warnbg:#3a2f12;--okbg:#17301c;--badbg:#3b1b19;--hi:#6b5518;--fill:#e8e6df;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:860px;margin:0 auto;padding:20px 16px 56px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 8px;font-weight:normal}
+h2{font-size:1.25rem;margin:36px 0 8px;font-weight:normal}
+h3{font-size:1rem;margin:0 0 6px}
+p{margin:0 0 12px}
+a{color:var(--accent)}
+.lede{font-size:1.1rem}
+.muted{color:var(--muted)}
+.small{font-size:.9rem}
+code,.mono{font-family:var(--mono);font-size:.9em}
+button,select{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 12px;min-height:40px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button[aria-pressed="true"],button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 14px 10px;margin:0 0 14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:640px){.cols{grid-template-columns:1fr}}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+td:first-child{white-space:nowrap}
+th,td{border-bottom:1px solid var(--line);padding:5px 8px 5px 0;text-align:left;vertical-align:top}
+th{font-weight:normal;color:var(--muted)}
+.tw{overflow-x:auto}
+.tag{display:inline-block;border-radius:4px;padding:0 7px;font-size:.85rem;font-family:var(--mono)}
+.tag.ok{background:var(--okbg);color:var(--ok)}
+.tag.bad{background:var(--badbg);color:var(--bad)}
+.tag.warn{background:var(--warnbg);color:var(--warn)}
+.tag.wait{background:var(--panel);border:1px solid var(--line);color:var(--muted)}
+.note{background:var(--warnbg);color:var(--ink);border-left:4px solid var(--warn);padding:8px 12px;border-radius:4px;margin:0 0 12px}
+.status{min-height:2.9em;margin:8px 0}
+.status.win{color:var(--ok)}
+
+/* picker */
+.picker{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 6px}
+.picker .sz{width:4.2rem;color:var(--muted);font-size:.9rem}
+.picker button{min-height:36px;padding:3px 10px;font-family:var(--mono);font-size:.9rem}
+.picker button.solved::after{content:" \2713"}
+
+/* nonogram board (--cell, --font, --rw, --ch are set in script) */
+.boardwrap{overflow-x:auto;padding:2px 0 6px;max-width:100%}
+.board{display:grid;grid-template-columns:var(--rw) auto;grid-template-rows:var(--ch) auto;font-size:var(--font);line-height:1.2;width:max-content;font-variant-numeric:tabular-nums}
+.colclues{display:grid;grid-template-columns:repeat(var(--n),var(--cell))}
+.cc{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding-bottom:3px}
+.rowclues{display:grid;grid-template-rows:repeat(var(--n),var(--cell))}
+.rc{display:flex;justify-content:flex-end;align-items:center;gap:.4em;padding-right:.45em;white-space:nowrap}
+.cc.done,.rc.done{color:var(--muted);opacity:.55}
+.cells{display:grid;grid-template-columns:repeat(var(--n),var(--cell));grid-template-rows:repeat(var(--n),var(--cell));border:2px solid var(--ink);touch-action:none;user-select:none;-webkit-user-select:none}
+.cell{position:relative;display:block;width:var(--cell);height:var(--cell);margin:0;padding:0;min-height:0;border:0;border-radius:0;background:var(--panel);border-right:1px solid var(--line);border-bottom:1px solid var(--line);font-size:inherit;line-height:1;cursor:pointer;color:var(--muted)}
+.cell.r5{border-right:2px solid var(--ink)}
+.cell.b5{border-bottom:2px solid var(--ink)}
+.cell:hover{border-color:var(--line);background:var(--panel)}
+.cell[data-s="f"]{background:var(--fill)}
+.cell[data-s="x"]::after{content:"\00d7";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.1em}
+.dot .cell[data-s="x"]::after{content:"\00b7";font-size:1.4em}
+.cell[data-new]{box-shadow:inset 0 0 0 3px var(--hi)}
+.cell[data-s="f"][data-new]{box-shadow:inset 0 0 0 3px var(--accent)}
+.cell:focus-visible{outline:3px solid var(--accent);outline-offset:-3px;z-index:1}
+.static .cell{cursor:default}
+
+/* mini grids for rejected puzzles */
+.mini{display:grid;grid-template-columns:repeat(var(--n),var(--mc));border:1px solid var(--ink);width:max-content}
+.mini i{display:block;width:var(--mc);height:var(--mc);background:var(--panel);border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.mini i.f{background:var(--fill)}
+.mini i.d{box-shadow:inset 0 0 0 2px var(--hi)}
+.mini i.f.d{box-shadow:inset 0 0 0 2px var(--bad)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.pair{display:flex;gap:12px;flex-wrap:wrap;margin:6px 0 8px}
+.pair figure{margin:0}
+.pair figcaption{font-size:.85rem;color:var(--muted)}
+input[type=range]{width:100%;max-width:420px;min-height:32px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.85rem;color:var(--muted);margin:4px 0 8px}
+.legend i{display:inline-block;width:12px;height:12px;border:1px solid var(--ink);vertical-align:-1px;margin-right:4px;background:var(--panel)}
+.legend i.f{background:var(--fill)}
+.legend i.n{box-shadow:inset 0 0 0 3px var(--hi)}
+.sr{position:absolute;left:-9999px}
+details{margin:0 0 10px}
+summary{cursor:pointer;min-height:32px}
+
+/* printable sheet: only #printarea is shown when printing */
+#printarea{display:none}
+@media print{
+  html,body{background:#fff!important;color:#000!important}
+  body>*{display:none!important}
+  body>#printarea{display:block!important}
+  @page{margin:14mm}
+  .pp{page-break-after:always;break-after:page;color:#000;font:11pt/1.4 Georgia,serif}
+  .pp:last-child{page-break-after:auto;break-after:auto}
+  .pp h2{font-size:15pt;margin:0 0 2mm}
+  .pp p{margin:0 0 3mm}
+  .pp .board{font-size:var(--font);color:#000}
+  .pp .cells{border:0.5mm solid #000;touch-action:auto}
+  .pp .cell{background:#fff;border-right:0.2mm solid #888;border-bottom:0.2mm solid #888}
+  .pp .cell.r5{border-right:0.5mm solid #000}
+  .pp .cell.b5{border-bottom:0.5mm solid #000}
+  .pp .cell[data-s="f"]{background:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .pp .mini{border-color:#000}
+  .pp .mini i{background:#fff;border-color:#bbb}
+  .pp .mini i.f{background:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .keys{display:flex;flex-wrap:wrap;gap:8mm}
+  .keys figure{margin:0;break-inside:avoid}
+  .keys figcaption{font-size:9pt}
+}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>Nonograms With Exactly One Answer</h1>
+<p class="lede" id="lede">Solve small nonograms, each one shown in code to have exactly one answer, and see the puzzles thrown out for having two or more answers.</p>
+<p>Each row and column of a nonogram lists the lengths of its runs of filled cells, in order, with at least one empty cell between runs. Fill the grid so every list is met. Made by Claude, an AI model. A puzzle drawn at random can have two or more answers, so this page runs two separately written solvers on every candidate and keeps only the ones where both agree.</p>
+<noscript><p class="note">This page needs JavaScript: the puzzles and every count are computed in the browser.</p></noscript>
+
+<h2>What the page tried</h2>
+<div class="panel" id="tally"><p class="muted">Running both solvers on every candidate...</p></div>
+
+<h2>Solve one</h2>
+<div id="picker" aria-label="Choose a puzzle"></div>
+<div class="panel">
+  <div class="row">
+    <strong id="ptitle"></strong>
+    <span class="muted small" id="pverdict"></span>
+  </div>
+  <div class="row">
+    <button id="mfill" aria-pressed="true" type="button">Fill</button>
+    <button id="mcross" aria-pressed="false" type="button">Cross out</button>
+    <button id="bclear" type="button">Clear</button>
+    <button id="breveal" type="button">Show the answer</button>
+    <button id="balt" type="button" hidden>Show the other answer</button>
+  </div>
+  <div class="boardwrap" id="playwrap"></div>
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+  <p class="muted small">Click or drag to fill; Fill/Cross out picks what a click does (right click or Shift-click also crosses). Keyboard: arrow keys move, Space fills, X crosses, Delete clears. A clue greys out when its line currently matches it. Crosses are only your notes and are never checked.</p>
+</div>
+
+<h2>Why it has exactly one answer</h2>
+<div id="proof"></div>
+
+<h2>Puzzles thrown out</h2>
+<div id="rejected"></div>
+
+<h2>Print a sheet</h2>
+<div class="panel">
+  <p>Prints blank grids with clues, one puzzle per page, from the kept puzzles. Your browser's print dialog can also save a PDF. Nothing is uploaded.</p>
+  <div class="row">
+    <button id="print1" type="button">Print the puzzle above</button>
+    <button id="printall" type="button">Print all kept puzzles</button>
+    <label><input type="checkbox" id="key" checked> add an answer-key page</label>
+  </div>
+  <p class="muted small" id="printnote"></p>
+</div>
+
+<h2>Checks the page runs on itself</h2>
+<div class="panel">
+  <p id="checksum" class="muted">Running...</p>
+  <div class="tw"><table id="checks"><thead><tr><th>Check</th><th>Result</th><th>What it found</th></tr></thead><tbody></tbody></table></div>
+  <p class="muted small" id="construction"></p>
+  <div class="row"><button id="damage" type="button">Damage one clue and run the checks again</button></div>
+  <div id="damaged" class="small"></div>
+</div>
+
+<h2>What this does not show</h2>
+<ul id="limits"></ul>
+<p class="small muted">Code: <a href="puzzles.js">puzzles.js</a>, <a href="linesolver.js">linesolver.js</a>, <a href="counter.js">counter.js</a>, <a href="checks.js">checks.js</a>, <a href="app.js">app.js</a>, tests in <a href="test.mjs">test.mjs</a>. More in the <a href="README.md">README</a>. <a href="../">Back to the Workbench</a>.</p>
+</main>
+<div id="printarea" aria-hidden="true"></div>
+<script src="puzzles.js"></script>
+<script src="linesolver.js"></script>
+<script src="counter.js"></script>
+<script src="checks.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
