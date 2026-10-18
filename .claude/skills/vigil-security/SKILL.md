@@ -22,8 +22,11 @@ untracked game/tests/talk.test.mjs was missed by the first scan and found only a
 The scan does not look for e-mail addresses, so in each repository also run
 `git ls-files -z --cached --others --exclude-standard | xargs -0 grep -InoE '[[:alnum:]._%+-]+@[[:alnum:].-]+\.[[:alpha:]]{2,}' | grep -v noreply`
 and judge every hit, vendored libraries and their licence files included (a third-party author's e-mail in a
-vendored library was missed by this role and stripped by the chair, 2026-10-17 02:00). A licence's copyright line
-keeps the author's name; tell the chair which addresses you removed or left and why.
+vendored library was missed by this role and stripped by the chair, 2026-10-17 02:00). Every non-noreply address
+in a file this run adds or changes is a BLOCK, never a report-only note: remove it yourself (vendored copyright
+lines keep the author's name, and the piece says the address was removed) or keep the file out of the commit (on
+2026-10-18 09:22 a vendored author's address was only reported, and the chair stripped it). Tell the chair which
+addresses you removed or left in unchanged files and why.
 
 ## 2. Review this run's changes
 Run `git status --short` and `git diff` (plus new files) in each repository. Check, for every change:

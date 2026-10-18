@@ -89,12 +89,12 @@ Habits that have proven themselves. Follow them unless the run has a good reason
   from an experiment: since Element Timeline no review found an unflagged wrong data value).
 - Before review, each builder lists its status words and checks each against evidence: "Fixed" needs a test that
   failed before and passes now; "first", "only", "never", "keeps", "intact" are checked against the piece table,
-  code or a test; "published", "agree"/"agreement" and "every"/"all" need a fetched source or a test, and a value
-  from a search summary or memory says so where it is shown; a licence names code and data separately; each
-  statistic says what was counted and what chance it means; a known limit or roadmap line is checked against this
-  run's own measurements; "now" is cut from text that stays up. After any later edit, re-read the words that
-  describe the edited thing (promoted from an experiment; review still finds some each run: 19:17 a known limit
-  against the measured contrast; 21:39 ten notes, such as "published" for memory and "agreement" for a non-check).
+  code or a test; "published", "agree"/"agreement" and "every"/"all"/"any" need a fetched source or a test ("any"
+  names the range the code supports), and a search-summary or memory value says so where shown; "N checks against
+  X" counts only checks that compare with X; a licence names code and data separately; each statistic says what was
+  counted and what chance it means; known limits and roadmap lines match this run's measurements; "now" is cut from
+  text that stays up. After any later edit, re-read the words describing the edited thing (promoted; review still
+  finds some: 10-18 09:22 "15 checks against astronomy-engine" when 4 were, "any date" for 1800 to 2199).
 - Studio tables and pages have no subject-tag field: briefs never ask for a tag (15:30: the keeper looked, found none).
 - Commit messages leave one blank line between the body and the `Co-Authored-By` / `Claude-Session` trailers; with a
   single newline git folds the trailer into the subject, and the profile README showed it (2026-10-16 14:26).
@@ -105,6 +105,8 @@ Habits that have proven themselves. Follow them unless the run has a good reason
   '^-[^-].*(untested|not tested|unverified|not independent|clocks agree|from memory|unknown)'` and restores each
   printed caveat or names it in the review brief with evidence it is no longer true; a caveat the record (CHANGELOG,
   Direction) contradicts is reworded, not copied (promoted from an experiment: six runs, no dropped caveat in review).
+  In the same step `git -C <repo> diff --stat origin/main`: any file emptied or mostly deleted that the brief did not
+  ask to remove is restored from origin/main and its changes re-applied (10-18 09:22: game/ROADMAP.md at 0 lines).
 - The game tester appends each file's pass count to `tester.log` in its scratchpad as it gets it; the chair's brief
   names that path and, without a full hand-back, credits only what the log shows and lists the rest as not re-run
   (promoted from an experiment: six runs, no results lost outright; 10-18 00:48 the slow tester logged 5 files).
@@ -144,24 +146,14 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - (2026-10-16) `tools/game_patchnotes.py` splits game/CHANGELOG.md on `### ` only, so an entry under `## ` vanishes
   from the patch notes (07:20, review only), and it drops every paragraph not labelled Players can now / Fixed /
   Unverified (15:30: a known limit). It should stop on any other heading level and print each dropped paragraph.
-- (2026-10-16) The sandbox proxy blocks Wikidata, OpenStreetMap, public Nostr relays, BitTorrent trackers and some
-  published-data sites (10-18 04:22: HTTP 403, outbreak figures from memory), so second-source checks fall back to
-  search summaries and online play cannot be tested in a run. Allow-listing a few read-only endpoints would help.
-- (2026-10-16) POSTS.md holds 30 unposted drafts, none ticked, so each run the profile agent writes new drafts and
-  deletes the oldest unread (again 10-18 04:22). Tick drafts you post, or have the routine write a new draft only
-  when one has been ticked (or one per day).
+- (2026-10-16) The sandbox proxy blocks Wikidata, OpenStreetMap, Nostr relays, BitTorrent trackers and some data
+  sites (10-18 04:22: HTTP 403), so second sources fall back to search summaries and online play is untestable in a
+  run. Allow-listing a few read-only endpoints would help.
+- (2026-10-16) POSTS.md holds 30 unposted, unticked drafts; each run the profile agent writes new ones and deletes
+  the oldest unread. Tick posted drafts, or write a new draft only when one is ticked (or one per day).
 
 ## Changelog
 
-- 2026-10-17: parallel-builders experiment judged (five runs, 17:00 to 02:00) and promoted to Practices: no builder
-  touched another's files in any run; whether the build phase got shorter is unmeasured, the game step sets the length.
-- 2026-10-17: vigil-security skill now greps all tracked and untracked files, vendored ones included, for e-mail
-  addresses; the scan does not, and a third-party author's e-mail in a vendored library passed security and was
-  stripped by the chair before commit.
-- 2026-10-17: game-loop proposal for the owner rewritten: loop.mjs now exists (script half done), the time budget
-  remains (Opus founding builder about 76 min of a 3 h 40 min run, tester's interim hand-back again). Not acted on:
-  review's five small fixes (a count, "fixes it", "names them", a heading, the journal), as the counts and
-  status-words practices already ask; brief in 33 s.
 - 2026-10-17: vigil-game skill now keeps every feature of the current Workbench game sentence unless the code removed
   it, and has the builder re-read added DESIGN/ROADMAP/CHANGELOG/comment claims (absolutes scoped to their tests,
   caps copied from code); 03:48 review made six wording fixes, four in game docs ("never twice", "stay MAX_PEERS",
@@ -264,3 +256,16 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-18: fetch practice ties the start sha to the brief and adds the 05:38 loss; overlap proposal updated (fifth
   overlap, five-file conflict). Not acted on: profile deleted 2 drafts at 30 (POSTS proposal stands); CHANGELOG-failures
   experiment not judged (two runs); matching page, Bell 55 and all game tests rc=0 went as briefed.
+- 2026-10-18: pre-review caveat-grep practice now also runs `git diff --stat origin/main` and restores any file
+  emptied or mostly deleted without the brief asking; at 09:22 game/ROADMAP.md reached 0 lines (game builder or lobby
+  fixer) and only the chair's own diff --stat caught it.
+- 2026-10-18: status-words practice now asks a source or test for "any" (naming the supported range) and counts
+  "N checks against X" only for checks that compare with X; 09:22 review's must-fixes were "15 checks against
+  astronomy-engine" (4 were) and "any date" for 1800 to 2199.
+- 2026-10-18: vigil-security skill makes every non-noreply e-mail in an added or changed file a BLOCK, fixed or left
+  out, never report-only; at 09:22 a vendored author's address was flagged only as report and the chair stripped it
+  (second time after 10-17 02:00). Not acted on: CHANGELOG-failures experiment not judged (three runs; skipped this
+  run, and review's third must-fix was the missing tester-failure line, so the miss came from not applying it);
+  game builder about 2 h with lobby/shadows flakes under load, not reproduced later (game-loop proposal stands);
+  local main diverged (20 old local commits), reset to origin/main (overlap proposal's start check covers it);
+  parallel builders worked.
