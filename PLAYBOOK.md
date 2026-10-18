@@ -113,60 +113,46 @@ Habits that have proven themselves. Follow them unless the run has a good reason
 
 Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would show it helped.`
 
-- None running; the next reflector may add one.
+- (started 2026-10-18) Before review, the chair checks that every failure in the game tester's hand-back or
+  tester.log, and every fail-then-pass the builder reported, is named in this run's CHANGELOG **Tested:** or
+  **Unverified:** line, and adds any missing one. Check: no review must-fix for a missing test finding in 6 runs.
 
 ## Proposals for the owner
 
 Changes only the owner can make to the routine. The owner can delete a line once it is handled.
 
-- (2026-10-15) `tools/security_check.py` should also scan untracked files that git does not ignore (`git ls-files
-  --cached --others --exclude-standard`); it uses `git ls-files` only, so an uncommitted `new Function` in
-  game/tests/talk.test.mjs passed the first scan and the game commit went out before a later scan found the BLOCK.
-- (2026-10-15) `tools/keeper_check.py` should check that every STUDIO.md and README table row has the same number of
-  cells as its header; the keeper wrote a broken STUDIO row (15:20 run) that passed keeper_check, review only. It
-  should also skip `<title>` inside `<svg>` and match "X and Y" case-sensitively (23:27: both false positives).
-- (2026-10-15) The studio's CLAUDE.md says "Add a journal entry before you finish", and every subagent reads it;
-  it should say that only the chair adds the entry. Builders and refiners keep writing their own (toy builder,
-  20:40 run, after keeper, toy refiner and fixer in earlier runs; the profile agent too, 2026-10-16 01:45 run,
-  and again 03:15 although the Practice says so). Until then, the vigil-profile skill could say it (next reflector).
-- (2026-10-16) A time budget for the game builder and tester, set in the routine (`game/tests/loop.mjs` already
-  prints exact pass counts). Game builder: about 76 min (10-17 02:00), 107 (08:32), 50 (11:49) and about 150 min at
-  19:17, the longest yet; testers 17-33 min, some with interim hand-backs. At 10-18 00:48 the Haiku tester logged
-  only 5 of about 25 files in the whole run: a Sonnet tester, or the chair running loop.mjs over every file as a
-  script, would credit them all. Stop-hook reminders about uncommitted
-  changes are noise mid-run (the chair commits only at the end; every run since 08:32, all of 19:17); the routine
-  could turn that hook off until then.
+- (2026-10-15) `tools/security_check.py` should also scan untracked files git does not ignore (`git ls-files
+  --cached --others --exclude-standard`); an uncommitted `new Function` in game/tests/talk.test.mjs passed the first
+  scan and the game commit went out before a later scan found the BLOCK.
+- (2026-10-15) `tools/keeper_check.py` should check that every STUDIO.md and README table row has as many cells as
+  its header (a broken STUDIO row, 15:20, passed it; review only), skip `<title>` inside `<svg>` and match "X and Y"
+  case-sensitively (23:27: both false positives).
+- (2026-10-15) The studio's CLAUDE.md says "Add a journal entry before you finish", and every subagent reads it; it
+  should say only the chair adds the entry. Keeper, toy refiner, fixer, toy builder, profile agent (twice) and a
+  fix-up agent (10-18 04:22, an unrequested stub the chair replaced) have all written their own.
+- (2026-10-16) A time budget for the game step, set in the routine. Game builder about 50-150 min a run (10-18 04:22:
+  about 90 min, most of it the 5x loop over 22 files with spares.test about 110 s a run, while the other roles
+  waited). Options: the builder runs the 5x loop only on files its increment touched and the tester (Sonnet, which at
+  04:22 found a report.test flake the builder had passed 5/5) runs the rest, or a script runs loop.mjs over every file
+  in the background. Stop-hook reminders about uncommitted changes are noise mid-run (the chair commits only at the
+  end); the routine could turn that hook off until then.
 - (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (about 2 h). Another run pushed to main mid-run
-  four times: 10-16 01:45 and 08:40 and 10-17 20:50 dropped game work (up to 118 min); at 21:39 a rebase conflict in
-  README, STUDIO, workbench, feed and sitemap was solved by keeping both sides and rerunning `site_meta.py`. In-run
-  fetches only shorten the loss; to prevent it, the chair pushes a claim at start (a `claim/<milestone>` branch or a
-  dated lock file), and a run finding a claim under about 4 h old builds the next milestone or skips the game. The
-  start check should also find the studio on `main` (19:17: HEAD detached at start).
-- (2026-10-16) `tools/game_patchnotes.py` splits game/CHANGELOG.md on `### ` only, so an entry written under `## `
-  silently vanishes from the patch notes (the watchdog restore note, 07:20 run, review only). It should stop with an
-  error on any other entry heading level, or print each skipped heading. It also drops every paragraph not labelled
-  Players can now / Fixed / Unverified, so a hand edit to the panel is overwritten (15:30: a known limit); it
-  should print each dropped paragraph too.
-- (2026-10-16) The sandbox proxy blocks Wikidata, OpenStreetMap, public Nostr relays and BitTorrent trackers, so
-  second-source data checks fall back to web-search summaries and the game's online play cannot be tested in a run
-  (19:32: Eratosthenes coordinates from search summaries; milestone 13's fallback tested only on a local tracker).
-  Allow-listing a few read-only endpoints (Wikidata SPARQL, one public relay, one tracker) would let runs check both.
-- (2026-10-16) POSTS.md holds 30 unposted drafts and none is ticked, so each run the profile agent writes new drafts
-  and deletes the 3 oldest unread (21:04, and earlier runs). Tick drafts you post, or tell the routine to write a
-  new draft only when one has been ticked (or one per day), to stop paying for drafts that are thrown away.
+  four times (10-16 01:45, 08:40, 10-17 20:50 dropped up to 118 min of game work; 21:39 a rebase conflict across
+  README, STUDIO, workbench, feed and sitemap). The chair could push a claim at start (`claim/<milestone>` branch or a
+  dated lock file); a run finding a claim under about 4 h old builds the next milestone or skips the game. The start
+  check should also find the studio on `main` (19:17: HEAD detached).
+- (2026-10-16) `tools/game_patchnotes.py` splits game/CHANGELOG.md on `### ` only, so an entry under `## ` vanishes
+  from the patch notes (07:20, review only), and it drops every paragraph not labelled Players can now / Fixed /
+  Unverified (15:30: a known limit). It should stop on any other heading level and print each dropped paragraph.
+- (2026-10-16) The sandbox proxy blocks Wikidata, OpenStreetMap, public Nostr relays, BitTorrent trackers and some
+  published-data sites (10-18 04:22: HTTP 403, outbreak figures from memory), so second-source checks fall back to
+  search summaries and online play cannot be tested in a run. Allow-listing a few read-only endpoints would help.
+- (2026-10-16) POSTS.md holds 30 unposted drafts, none ticked, so each run the profile agent writes new drafts and
+  deletes the oldest unread (again 10-18 04:22). Tick drafts you post, or have the routine write a new draft only
+  when one has been ticked (or one per day).
 
 ## Changelog
 
-- 2026-10-16: vigil-game skill now has testers record their test changes and new findings in the run's CHANGELOG
-  entry, and the Workbench sentence end with the online-play status; review found the world.test fix, the 0.9 s
-  stall and the summary caveat missing. Not acted on: parallel builders ran a third time with no clash, run about
-  1 h (experiment not judged, three runs).
-- 2026-10-16: proposal for the owner: stop the draft churn in POSTS.md (30 unposted, none ticked, 3 deleted unread
-  this run as in earlier runs).
-- 2026-10-16: vigil-game skill now has builders and testers run each loop in the foreground with a 10-minute
-  timeout, never nohup or `&`; the Haiku tester's nohup script handed back incomplete twice and ended with no report
-  (the chair read the logs: 16 files exit 0). Not acted on: review found two game overclaims (cheer hand, reduced
-  motion), a far-placed Pilish caveat and a formula slip, all fixed (status-words practice: re-read, still review only).
 - 2026-10-16: Direction updated; Pilish Poems make the first poems, so "poems" leaves the "not yet made" list.
 - 2026-10-16: game-loop proposal for the owner updated with the lost tester report. Not acted on: the profile's
   2-draft cap left no game draft and it wrote "six goes" for the five-go toast (chair fixed; counts practice applies);
@@ -267,3 +253,11 @@ Changes only the owner can make to the routine. The owner can delete a line once
   scripted loop.mjs run proposed). Not acted on: CHROME unset again, set by hand (practice exists); piece filter
   failed 9 audio cases, fixed by its own tests; profile pruned 3 drafts at 30 (proposal stands); toy avoided the
   sixth-press payoff as briefed; review's four wording notes (status-words practice).
+- 2026-10-18: new experiment, the chair checks before review that every tester and builder test failure is named in
+  the CHANGELOG; 04:22 review's must-fix found the tester's report.test flake missing although vigil-game step 4
+  already asks testers to add it (third such miss).
+- 2026-10-18: game-loop proposal rewritten: builder about 90 min, mostly the 5x loop (spares.test about 110 s a run,
+  22 files), with a split of loop work between builder and the Sonnet tester, who found a flake the builder passed 5/5.
+- 2026-10-18: Proposals compressed to bring the file under about 150 lines above the changelog (was 157); journal
+  proposal adds the fix-up agent's stub, proxy proposal the outbreak 403, POSTS proposal this run's trim to 30. Not
+  acted on: "connect more reliably" overclaim and six wording notes (status-words practice already asks).
