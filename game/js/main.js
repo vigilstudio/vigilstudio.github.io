@@ -18,7 +18,8 @@ import { createGather } from "./gather.js";
 import { createGive, GIVE_RANGE } from "./give.js";
 import { createSwap } from "./swap.js";
 import { cleanSave, adoptSave, SOFT_STACK, CRAFTED, LAMP_KEYS, ITEMS } from "./inventory.js";
-import { createBeacons, BEACON_NEED, BEACON_RANGE, LIT_RADIUS, MIN_PLAYERS, MAX_OWN, WORTH } from "./beacon.js";
+import { createFlame, FLAME_RANGE } from "./flame.js";
+import { createBeacons, FLAME_FUEL, BEACON_NEED, BEACON_RANGE, LIT_RADIUS, MIN_PLAYERS, MAX_OWN, WORTH } from "./beacon.js";
 import { createQuests, noteText, pickDay, shareCap, MIN_PLAYERS as NOTE_PLAYERS } from "./quests.js";
 import { createShades, pickClockOffset, nextWaveIn, shadeCount, slotOf, SHADE_NEED, MIN_PLAYERS as SHADE_PLAYERS, EMBER_TILES, SNUFF_S, SAFE_FRACTION, MAX_SHARE as SHADE_CAP } from "./shades.js";
 import { lighthouseOf, watchKept, holdOut, insideBeam, createBeam, LIGHTHOUSE_RADIUS } from "./lighthouse.js";
@@ -118,7 +119,7 @@ const pinnedWeather = pickWeather(location.search); // ?weather=clear|mist|rain 
 const lightNow = () => lightFor(pinnedHour ?? hourAt(Date.now()));
 let lastHud = 0, lastMap = 0, mapOn = true;
 const tapCounts = {};
-let stone = null, fishing = null, fishView = null, rankNet = null, net = null, presence = null, talk = null, gather = null, give = null, swap = null, craft = null, beacon = null, quests = null, shades = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
+let flame = null, stone = null, fishing = null, fishView = null, rankNet = null, net = null, presence = null, talk = null, gather = null, give = null, swap = null, craft = null, beacon = null, quests = null, shades = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
 const input = createInput(canvas, () => playing);
 
 async function enter() {
@@ -142,6 +143,7 @@ async function enter() {
   fishing = createFishing(net, world, me, presence.peers, { inv, persist: save, clock: shadeNow, still: reducedMotion, onEvent: fishEvent });
   craft = createCraft(net, me, presence.peers, inv, cr, held, { onEvent: craftEvent, persist: save });
   beacon = createBeacons(net, me, presence.peers, inv, beaconList, { onEvent: beaconEvent, persist: save });
+  flame = createFlame(net, me, presence.peers, beacon, beaconList.length, { onEvent: flameEvent });
   quests = createQuests(net, world, me, presence.peers, { onEvent: questEvent, beacons: beaconList.length, day: testDay });
   shades = createShades(net, world, me, presence.peers, { onEvent: shadeEvent, clock: shadeNow, paceFor: (slot) => shadePaceAt(world.seed, slot, pinnedWeather), reachFor: shadeReach, safeAt: shadeSafe, holdOut: shadeHold });
   rank.newVisit(); baseline.clear(); rankNet = createRankNet(net, me, presence.peers, rank); paintRank(true);
@@ -150,7 +152,7 @@ async function enter() {
   me.snuffed = false; $("shadeinfo").textContent = ""; lastShadeKey = ""; paintShades(true);
   me.say = null; me.emote = null; $("questinfo").textContent = "";
   paintQuests(true);
-  paintBeacon(true); $("beaconinfo").textContent = ""; beam.reset(); wasKept = false; $("watchinfo").textContent = ""; paintWatch(true);
+  paintBeacon(true); $("beaconinfo").textContent = ""; $("flameinfo").textContent = ""; lastFlameKey = ""; paintFlame(true); beam.reset(); wasKept = false; $("watchinfo").textContent = ""; paintWatch(true);
   $("fishinfo").textContent = ""; lastFishKey = ""; paintFish(null);
   paintPack(); paintCraft(); $("craftinfo").textContent = ""; paintGive(); $("gathered").textContent = ""; $("giveinfo").textContent = ""; $("tradeinfo").textContent = ""; lastTradeKey = ""; paintTrade();
   strides.clear(); lastHud = 0; setMap(true);
@@ -171,8 +173,8 @@ function leaveRoom() {
   if (swap) swap.cancel(); // an offer of mine that is still open: the item set aside goes back to the pack
   fishing.leave(); presence.leave(); net.leave();
   strides.clear(); setSteps(false); steps.close();
-  playing = false; net = null; presence = null; talk = null; gather = null; give = null; swap = null; craft = null; beacon = null; quests = null; shades = null; rankNet = null; clockCheck = null; stone = null; renderer.setStone(null); fishing = null; fishView = null; paintFish(null); paintClock(); me.snuffed = false;
-  paintShades(true); paintQuests(true); paintBeacon(true); setTalkOpen(false); $("heard").textContent = ""; paintGive(); paintTrade(); paintPack(); paintCraft();
+  playing = false; net = null; presence = null; talk = null; gather = null; give = null; swap = null; craft = null; beacon = null; flame = null; me.flame = false; quests = null; shades = null; rankNet = null; clockCheck = null; stone = null; renderer.setStone(null); fishing = null; fishView = null; paintFish(null); paintClock(); me.snuffed = false;
+  paintShades(true); paintQuests(true); paintBeacon(true); paintFlame(true); setTalkOpen(false); $("heard").textContent = ""; paintGive(); paintTrade(); paintPack(); paintCraft();
   document.body.classList.remove("playing");
   $("connline").textContent = ""; $("copystate").textContent = ""; $("copyfallback").hidden = true;
   $("enter").disabled = false;
@@ -207,6 +209,7 @@ function frame(t) {
   craft.tick();
   fishing.tick();
   beacon.tick();
+  flame.tick();
   quests.tick();
   beam.update(watchIsKept(), dt, reducedMotion());
   shades.tick(dt);
@@ -224,6 +227,7 @@ function frame(t) {
   paintRank();
   paintStone();
   paintBeacon();
+  paintFlame();
   paintWatch();
   paintQuests();
   $("gather").disabled = !reach;
@@ -347,6 +351,55 @@ function beaconEvent(type, b, r) {
   if (type === "added") { paintPack(); lastGiveKey = ""; save(); }
   lastBeaconKey = "";
 }
+// ---- carrying the flame (flame.js): take it from a lit beacon, light another with it or hand it on ----
+const FLAME_WHY = { far: `Stand within ${BEACON_RANGE} tiles of a lit beacon to take a flame.`, unlit: "This beacon is not lit, so it has no flame to give.", held: "You already carry a flame.", busy: "Finish the flame offer first.", gap: "You took a flame a moment ago. Wait a little before taking another.", none: "You carry no flame.", offering: "You have offered your flame; wait for the answer or take the offer back.", lit: "This beacon is already lit.", full: `You have already added as much as one player can to this beacon (${MAX_OWN} fuel).`, wait: "Still hearing from the others. Try again in a moment.", out: "The flame has gone out." };
+function flameEvent(type, d) {
+  const who = d && d.seed !== undefined ? nameFor(d.seed) : "";
+  const say = {
+    taken: "You took a flame from the beacon. Carry it to an unlit beacon before it goes out.",
+    offering: `Flame offered to ${who}. Waiting for them to take it.`,
+    offered: `${who} offers you their flame.`,
+    accepted: `You said yes to ${who}'s flame. Waiting for it to arrive.`,
+    passed: `You passed your flame to ${who}.`,
+    received: `${who} passed you a flame. Carry it to an unlit beacon.`,
+    used: `You lit the beacon with your flame (${FLAME_FUEL} fuel). It lights when the rest is added and a second player has added some.`,
+    declined: `${who} did not take the flame. You still carry it.`,
+    cancelled: "The flame offer ended. Nothing moved.",
+    expired: "The flame offer timed out. Nothing moved.",
+    lost: `The flame offer ended because ${who} left. If the flame was on its way, it has gone out.`,
+    out: "The flame has gone out.",
+    refused: FLAME_WHY[d && d.why] || "Nothing happened.",
+  }[type];
+  if (say) $("flameinfo").textContent = say;
+  if (type === "used") { paintBeacon(true); }
+  lastFlameKey = "";
+  paintFlame();
+}
+let lastFlameKey = "";
+function paintFlame(force) {
+  if (force) lastFlameKey = "";
+  const h = flame ? flame.held : null, inc = flame ? flame.incoming : null, out = flame ? flame.outgoing : null, exp = flame ? flame.expecting : null;
+  const nb = beacon ? beacon.near() : -1, lit = nb >= 0 && beacon.lit(nb), t = flame ? flame.target() : null;
+  const secs = h ? Math.ceil(h.left / 5000) * 5 : 0; // in steps of 5 s so the page does not repaint every frame
+  const key = [!!flame, h ? h.b + ":" + secs : "", inc ? inc.t : "", out ? out.t : "", exp ? exp.t : "", nb, lit, t ? t.id : ""].join("|");
+  if (key === lastFlameKey) return;
+  lastFlameKey = key;
+  $("flame").hidden = !flame || (!h && !inc && !out && !exp && !lit);
+  if (!flame) return;
+  $("flametake").hidden = !!h || !lit; $("flametake").disabled = !!h || !!inc || !!exp;
+  $("flamegive").hidden = !h; $("flamegive").disabled = !h || !t || !!out;
+  $("flamelight").hidden = !h; $("flamelight").disabled = !h || !!out || nb < 0 || lit;
+  $("flamecancel").hidden = !out;
+  $("flamestate").textContent = h ? `You carry a flame from the ${beaconName(h.b)} beacon, burning for about ${secs} more seconds. ${t ? `Nearest player in reach: ${t.name}.` : `No one within ${FLAME_RANGE} tiles to hand it to.`}` : lit ? "This beacon is lit. You can take a flame from it." : exp ? "A flame is on its way to you." : "";
+  $("flamebox").hidden = !inc;
+  if (inc) $("flametext").textContent = `${nameFor(inc.seed)} offers you their flame.`;
+}
+$("flametake").addEventListener("click", () => { if (flame) flame.take(); canvas.focus({ preventScroll: true }); });
+$("flamegive").addEventListener("click", () => { if (flame) flame.offer(); paintFlame(true); canvas.focus({ preventScroll: true }); });
+$("flamelight").addEventListener("click", () => { if (flame) flame.light(); canvas.focus({ preventScroll: true }); });
+$("flamecancel").addEventListener("click", () => { if (flame) flame.cancel(); paintFlame(true); });
+$("flameyes").addEventListener("click", () => { if (flame) flame.accept(); paintFlame(true); canvas.focus({ preventScroll: true }); });
+$("flameno").addEventListener("click", () => { if (flame) flame.decline(); paintFlame(true); canvas.focus({ preventScroll: true }); });
 let lastBeaconKey = "";
 function paintBeacon(force) {
   if (force) lastBeaconKey = "";
@@ -868,6 +921,13 @@ window.__longWatch = {
   reel: () => (fishing ? fishing.reel() : null),
   connection: () => ({ line: $("connline").textContent, text: net ? reportText(net.status(), reportCtx()) : "", copyState: $("copystate").textContent, fallback: $("copyfallback").hidden ? "" : $("copyfallback").value }),
   face: (d) => { if (Number.isFinite(d)) { me.d = d; return true; } return false; }, // tests only
+  flame: () => flame ? { held: flame.held, incoming: flame.incoming, outgoing: flame.outgoing, expecting: flame.expecting, near: beacon ? beacon.near() : -1, panel: !$("flame").hidden, state: $("flamestate").textContent, info: $("flameinfo").textContent, meFlag: !!me.flame, peerFlags: presence ? [...presence.peers.values()].map(p => ({ id: p.id, flame: !!p.flame })) : [], buttons: { take: !$("flametake").hidden && !$("flametake").disabled, give: !$("flamegive").hidden && !$("flamegive").disabled, light: !$("flamelight").hidden && !$("flamelight").disabled, yes: !$("flamebox").hidden } } : null,
+  flameTake: () => flame ? flame.take() : null,
+  flameOffer: () => !!flame && flame.offer(),
+  flameAccept: () => !!flame && flame.accept(),
+  flameDecline: () => !!flame && flame.decline(),
+  flameCancel: () => !!flame && flame.cancel(),
+  flameLight: () => flame ? flame.light() : null,
   addFuel: (item) => beacon ? beacon.add(item) : null,
   craft: () => ({ inv: { ...inv }, cr: { ...cr }, lamp: held.lamp, info: $("craftinfo").textContent, peerLamps: presence ? [...presence.peers.values()].map(p => ({ id: p.id, lamp: p.lamp | 0 })) : [] }),
   makeItem: (name) => { if (!craft) return null; const r = craft.craft(name); return r; },

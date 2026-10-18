@@ -23,6 +23,7 @@ export const MAX_ENTRIES = 24;       // shares kept per beacon; a full list refu
 export const BEACON_RANGE = 2.5;     // tiles from the beacon within which you can add fuel
 export const LIT_RADIUS = 9;         // tiles of light a lit beacon gives
 export const WORTH = { driftwood: 1, berries: 2, oil: 3 }; // fuel points per item (reeds do not burn well; lamp oil from fish burns best)
+export const FLAME_FUEL = BEACON_NEED / 2; // a carried flame (flame.js) counts as this much fuel in the share of the player who lights a beacon with it
 export const RESEND_MS = 5000;
 export const SYNC_WAIT_MS = 1500;
 const CHUNK = 10;
@@ -130,6 +131,21 @@ export function createBeacons(net, me, peers, inv, beacons, opts = {}) {
       persist();
       net.send({ k: "fu", b, n: shares.own(b, me.seed) });
       onEvent("added", b, { item });
+      checkLit();
+      return { ok: true, b };
+    },
+    // Light the beacon in reach with a carried flame (the holder's page checks it holds one): FLAME_FUEL goes into my share,
+    // with the same checks as add(). Nothing in the pack changes. { ok:true, b } or { ok:false, why }.
+    addFlame() {
+      const b = near();
+      if (b < 0) { onEvent("refused", -1, { why: "far" }); return { ok: false, why: "far" }; }
+      if (!synced && peers.size > 0) { onEvent("refused", b, { why: "wait" }); return { ok: false, why: "wait" }; }
+      if (shares.lit(b)) { onEvent("refused", b, { why: "lit" }); return { ok: false, why: "lit" }; }
+      if (shares.own(b, me.seed) + FLAME_FUEL > MAX_OWN) { onEvent("refused", b, { why: "full" }); return { ok: false, why: "full" }; }
+      shares.merge(b, me.seed, shares.own(b, me.seed) + FLAME_FUEL);
+      persist();
+      net.send({ k: "fu", b, n: shares.own(b, me.seed) });
+      onEvent("flamed", b);
       checkLit();
       return { ok: true, b };
     },

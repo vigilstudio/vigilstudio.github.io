@@ -485,7 +485,7 @@ async function teleportSynced(page, others, x, y) {
 }
 const beaconList = world.landmarks.filter(l => l.kind === "beacon");
 const standNear = (l) => { for (let r = 1.1; r <= 2.2; r += 0.3) for (let a = 0; a < 6.28; a += 0.5) { const x = l.x + Math.cos(a) * r, y = l.y + Math.sin(a) * r, t = tileAt(world, x, y); if ((t === T.SAND || t === T.GRASS || t === T.MEADOW) && !isBlocked(world, x, y)) return { x, y }; } return null; };
-const KNOWN_KINDS = new Set(["hi", "st", "by", "say", "em", "pk", "gt", "ok", "no", "rq", "sn", "of", "ac", "dc", "cx", "cf", "rc", "lt", "fu", "fq", "fs", "qp", "qq", "qs", "sf", "hp", "hq", "hs", "rk", "ck", "ln", "fl"]);
+const KNOWN_KINDS = new Set(["hi", "st", "by", "say", "em", "pk", "gt", "ok", "no", "rq", "sn", "of", "ac", "dc", "cx", "cf", "rc", "lt", "fu", "fq", "fs", "qp", "qq", "qs", "sf", "hp", "hq", "hs", "rk", "ck", "ln", "fl", "fh", "fo", "fa", "fd", "fc"]);
 
 async function scenario(label, mk, query, room, timeout) {
   console.log(`\n# ${label}`);

@@ -784,6 +784,11 @@ function drawAvatar(g, p, sx, sy, tile, isMe, t, reduce) {
   }
   else if (glow) { g.fillStyle = `rgba(${glow[0]},${glow[1]},${glow[2]},0.35)`; g.beginPath(); g.arc(lx, ly, r * 0.75, 0, Math.PI * 2); g.fill(); }
   if (!p.snuffed) { g.fillStyle = glow ? `rgb(${glow[0]},${glow[1]},${glow[2]})` : p.colour; g.beginPath(); g.arc(lx, ly, r * 0.38, 0, Math.PI * 2); g.fill(); }
+  if (p.flame && !p.snuffed) { // a carried flame: a small orange tongue above the lantern (still under reduced motion)
+    const fl = reduce ? 1 : 1 + Math.sin(t / 90 + (p.seed || 0) % 5) * 0.15, fh = r * 1.15 * fl;
+    g.fillStyle = "rgba(255,150,40,0.95)"; g.beginPath(); g.moveTo(lx - r * 0.2, ly - r * 0.3); g.quadraticCurveTo(lx - r * 0.25, ly - fh * 0.8, lx, ly - r * 0.3 - fh); g.quadraticCurveTo(lx + r * 0.25, ly - fh * 0.8, lx + r * 0.2, ly - r * 0.3); g.closePath(); g.fill();
+    g.fillStyle = "rgba(255,235,160,0.95)"; g.beginPath(); g.arc(lx, ly - r * 0.45, r * 0.1, 0, Math.PI * 2); g.fill();
+  }
   if (p.rank > 0 && !p.snuffed) { // lamplighter trim: one gold mark round the lantern per rank (the rank is a clamped number)
     const n = Math.min(MAX_RANK, p.rank | 0), lr = r * 0.62;
     g.fillStyle = "#ffd36b";
