@@ -112,7 +112,11 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
    instead of chasing it longer (2026-10-16 01:45: one gather/craft handshake race took about 3 h and stayed
    unexplained). This holds when the milestone itself is fixing flakes: run `date +%H:%M` when you start on each
    failure and again before each new attempt, and name each failure's minutes in the report (2026-10-18 16:52: a
-   "steadier tests" milestone took about 4 h with no time-box kept). Write tester.log and every other scratch file
+   "steadier tests" milestone took about 4 h with no time-box kept). With every such `date` stamp, and at least
+   every 30 minutes of any milestone, also run the step-1 fetch and `git log <that sha>..origin/main -- game/`, and
+   stop as step 1 says on any output; on a flake-fixing milestone, at about 45 minutes in total, stop fixing, run
+   every file once and hand back with the unexplained ones named (2026-10-18 18:15: another run's
+   milestone 31 landed while this builder spent about 3 h on flakes, and was found only at review). Write tester.log and every other scratch file
    in your scratchpad, never in a repository, and never write STUDIO.md or a journal entry: only the chair does
    (16:52: a tester.log in the studio root and a journal stub, both removed by the chair). A check that
    reads pixels or positions of anything drawn moving or eased (dots, sprites, camera) searches a small window or

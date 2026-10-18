@@ -73,13 +73,15 @@ Habits that have proven themselves. Follow them unless the run has a good reason
 - Browser tests (page_check, game tests) run with `CHROME` set to the headless shell binary from the start; the
   default Chromium crashes in this sandbox. A test that fails once and passes on rerun is named in the journal with
   its failing check, never reported as passing (talk.test, 2026-10-15 10:45).
-- The chair runs `git fetch` and checks `origin/main` before launching the builders, whenever a builder hands back,
+- The chair runs `git fetch` in all three repositories (studio, toys, profile) and checks each `origin/main` in the
+  same command right before launching each builder (a second game builder too), whenever a builder hands back,
   before the game tester, before any status wording and before each commit. While the game builder works, a
   background loop (Monitor, every 5 min) runs `git fetch -q && git log --oneline <start sha>..origin/main -- game/`
   and on any output the chair stops the game builder at once. If main's `game/` or piece table moved (start sha from
   the brief's last line), the game step stops and the advisor redoes that part of the brief. Push only in its own
-  command after reading test and scan output (10-15 12:40: push after a failed test; 10-16 to 10-18 17:58: five
-  losses of 45-118 min of game work, each seen only after the builder had started or finished).
+  command after reading test and scan output (10-15 12:40: push after a failed test; 10-16 to 10-18 18:15: seven
+  losses of 20 min to 3 h of game work, each seen only after the builder had started or finished; 18:15 lost two
+  builders' work and redid a profile commit because the profile repo had moved).
 - Every run the keeper compares each Workbench game passage (the Long Watch paragraph, the letter) with
   game/ROADMAP's "Done" list and the CHANGELOG's online-play status, updates what it may edit, and names any stale
   sentence in a protected passage for the owner (promoted from an experiment, seven runs: it flagged the protected
@@ -154,12 +156,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-17: game-loop proposal updated (game builder about 50 min, tester about 33; stop-hook noise again). Not
-  acted on: the tester's fix and its before/after counts reached the CHANGELOG only through review although
-  vigil-game step 4 asks testers to add them (watch next run before editing the skill again); no overlapping run.
-- 2026-10-17: vigil-refine skill now also greps digits in JS strings that reach the page, and the report gives each
-  mechanical check's result or "skipped"; the toy refiner found the tag-stripped scan missed numbers typed in script,
-  and the piece refiner skipped the number and duplicate-id greps and the headline-cause test without saying so.
 - 2026-10-17: new experiment, the game tester logs pass counts to a scratchpad file as it goes; its 13:22 report never
   reached the chair, so its work went uncredited (thin or interim hand-backs in earlier runs too).
 - 2026-10-17: Direction updated; Where the Current Goes adds electrical circuits. Not acted on: a message-kind name
@@ -272,3 +268,11 @@ Changes only the owner can make to the routine. The owner can delete a line once
   proposal shortened to keep the file near 150 lines. Not acted
   on: refiners found the Pillow FS recipe and review one false comment (refine and status-words practices working);
   security 0 BLOCK; toy and keeper as briefed.
+- 2026-10-18: fetch practice now fetches all three repositories right before launching each builder (a second game
+  builder too); at 18:15 two game builders' work (about 3 h and 20 min) was dropped to other runs' milestones 31 and
+  32, and the profile commit was redone because the profile repo had moved.
+- 2026-10-18: vigil-game skill now has the builder fetch and check main with every time-box `date` stamp and at least
+  every 30 min, and stop a flake-fixing milestone at about 45 min total; at 18:15 milestone 31 landed during a 3 h
+  flake hunt and was found only at review. Not acted on: units/ dropped an untraced 12th row and labelled search-summary
+  figures (status-words practice working); Crop 60 refiner fixed 2 small bugs; overlap proposal stands (eighth case);
+  break-checks-once experiment not judged (one run).
