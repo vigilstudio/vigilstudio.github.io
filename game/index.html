@@ -6,20 +6,20 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-BG2gX3hajGVxltL+otxQasqCOxetzNTzWFMGrd3VNgk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' wss: ws://127.0.0.1:* ws://localhost:*; base-uri 'none'; object-src 'none'; form-action 'none'">
 <title>The Long Watch · Vigil</title>
 <!-- META:START (written by tools/site_meta.py) -->
-<meta name="description" content="A multiplayer night-island RPG where players gather, fish for lamp oil, craft, give and swap items, light the lighthouse together, see soft shadows, play a music stone, see dusk and dawn tint the island, and feel the weather a little and copy a numbers-only connection report, meeting through Nostr relays and BitTorrent trackers peer to peer with no typed text; online play over public relays untested (local relay and tracker only).">
+<meta name="description" content="A multiplayer night-island RPG where players gather, fish for lamp oil, craft, give and swap items, light the lighthouse together, see soft shadows, play a music stone, see dusk and dawn tint the island, and feel the weather a little and copy a numbers-only connection report, meeting through Nostr relays and BitTorrent trackers peer to peer with no typed text; spare relays and trackers are added when fewer than two are open after 10 seconds, and the numbers-only connection report counts opens and failures per path; online play over public relays is untested (local relays and trackers only).">
 <link rel="canonical" href="https://vigilstudio.github.io/game/">
 <link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Vigil">
 <meta property="og:title" content="The Long Watch · Vigil">
-<meta property="og:description" content="A multiplayer night-island RPG where players gather, fish for lamp oil, craft, give and swap items, light the lighthouse together, see soft shadows, play a music stone, see dusk and dawn tint the island, and feel the weather a little and copy a numbers-only connection report, meeting through Nostr relays and BitTorrent trackers peer to peer with no typed text; online play over public relays untested (local relay and tracker only).">
+<meta property="og:description" content="A multiplayer night-island RPG where players gather, fish for lamp oil, craft, give and swap items, light the lighthouse together, see soft shadows, play a music stone, see dusk and dawn tint the island, and feel the weather a little and copy a numbers-only connection report, meeting through Nostr relays and BitTorrent trackers peer to peer with no typed text; spare relays and trackers are added when fewer than two are open after 10 seconds, and the numbers-only connection report counts opens and failures per path; online play over public relays is untested (local relays and trackers only).">
 <meta property="og:url" content="https://vigilstudio.github.io/game/">
 <meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The Long Watch · Vigil">
-<meta name="twitter:description" content="A multiplayer night-island RPG where players gather, fish for lamp oil, craft, give and swap items, light the lighthouse together, see soft shadows, play a music stone, see dusk and dawn tint the island, and feel the weather a little and copy a numbers-only connection report, meeting through Nostr relays and BitTorrent trackers peer to peer with no typed text; online play over public relays untested (local relay and tracker only).">
+<meta name="twitter:description" content="A multiplayer night-island RPG where players gather, fish for lamp oil, craft, give and swap items, light the lighthouse together, see soft shadows, play a music stone, see dusk and dawn tint the island, and feel the weather a little and copy a numbers-only connection report, meeting through Nostr relays and BitTorrent trackers peer to peer with no typed text; spare relays and trackers are added when fewer than two are open after 10 seconds, and the numbers-only connection report counts opens and failures per path; online play over public relays is untested (local relays and trackers only).">
 <meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
 <!-- META:END -->
 <style>
@@ -232,7 +232,7 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
     <p class="status" id="status" role="status" aria-live="polite"></p>
     <p class="small" id="connline" aria-live="off"></p>
     <p class="small"><button class="ghost" id="copyreport" type="button">Copy connection report</button> <span id="copystate" role="status" aria-live="polite"></span></p>
-    <p class="small" id="connnote">The report is numbers only (how many relays opened, how many players were met), copied to your own clipboard and sent nowhere. It holds no names, no addresses and nothing a player sent. Online play over the public relays has not been tested by the builders; only relays on one machine were used.</p>
+    <p class="small" id="connnote">The report is numbers only (how many relays opened, how many players were met), copied to your own clipboard and sent nowhere. It holds no names, no addresses and nothing a player sent. If fewer than 2 relays (or trackers) of a way are open 10 s after you enter and nobody is linked yet, the game adds a few spare ones from its own list; the line says so. The spare list, like the first choices, has never been reached from the builders' sandbox: online play over the public relays has not been tested by the builders; only relays on one machine were used.</p>
     <textarea id="copyfallback" class="small" rows="8" readonly hidden aria-label="Connection report to copy by hand" style="width:100%;font:12px/1.4 monospace"></textarea>
     <p class="small" id="clocknote" aria-live="polite" hidden></p>
     <ul class="peers" id="peers" aria-label="Players in this lantern"></ul>
@@ -244,6 +244,11 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
   <h2 id="notes-h">Patch notes</h2>
   <p class="small">The game grows a little every two hours. Newest first; open a version to see what it added.</p>
   <details class="ver" open>
+    <summary><b>v0.31</b> · Spare relays (milestone 28) <span class="when">2026-10-18</span></summary>
+    <p><span class="tag t-new">New</span> when fewer than 2 relays (or trackers) of a way are open 10 s after entering and nobody is linked yet, the game tries a few spare ones from its own list, and the Connection line says so. The copied report now also says how often a relay opened, failed to open or closed, and whether spares were used.</p>
+    <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays and BitTorrent trackers is untested by the builders (the sandbox cannot reach them), and so is the spare list itself: two of its Nostr spares come from the builder's memory, not a checked list, and none was reached. Spares are held back while a player is linked, so a player who has one working relay and a friend linked gets none while that link lasts (the code rechecks every 5 s).</p>
+  </details>
+  <details class="ver">
     <summary><b>v0.30</b> · A connection report (milestone 27) <span class="when">2026-10-17</span></summary>
     <p><span class="tag t-new">New</span> read a "Connection" line under the status line while playing: how many Nostr relays and BitTorrent trackers their browser managed to open, how many never opened, and how many players they have met. A "Copy connection report" button puts the same numbers, a little more fully, on their own clipboard as plain text, to paste into a GitHub issue after trying the game with a friend on another network. The report holds only counts and fixed words: no names, no addresses and nothing another player sent. It says plainly that online play over the public relays has not been tested by the builders. If the browser will not allow copying, the text appears in a box, already selected, to copy by hand.</p>
     <p><span class="tag t-not">Not yet checked</span> online play over the public Nostr relays and BitTorrent trackers is still untested by the builders (only relays and a tracker on one machine were used); the report has never been read after a real online game, and its count of relays that opened and then closed is sampled once a second, so a relay that opens and closes within a second is counted as never opened. The report does not count WebRTC connections that failed to open: it counts connections rebuilt after going silent, and players who joined and went.</p>
@@ -411,7 +416,7 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
       <li>Tested online on 15 October 2026, before gathering and giving existed: a phone and a computer on different networks found each other through
         the public relays and played together. Giving, crafting, beacons, the keeper's notes and shades have only been tested on a local relay. With no TURN relay server, some pairs of networks may still never
         connect.</li>
-      <li>The "Connection" line and the "Copy connection report" button show numbers only: how many relays and trackers your browser opened, how many players it met, how many links were rebuilt. Nothing is sent anywhere; the button copies the text to your own clipboard, and it holds no names, no addresses and nothing another player sent. Online play over the public relays and trackers has not been tested by the builders; only the owner's test of an early version covers the real network, and the builders used relays on one machine only, so the report is how a real test can be read.</li>
+      <li>The "Connection" line and the "Copy connection report" button show numbers only: how many relays and trackers your browser opened, how many players it met, how many links were rebuilt, how often a relay opened or failed to open, and whether spare relays were added (they are added when fewer than 2 are open 10 seconds after you enter and no one is linked yet). Nothing is sent anywhere; the button copies the text to your own clipboard, and it holds no names, no addresses and nothing another player sent. Online play over the public relays and trackers has not been tested by the builders; only the owner's test of an early version covers the real network, and the builders used relays on one machine only, so the report is how a real test can be read.</li>
       <li>Your character (its generated name, where you stood, your pack, the wicks and lanterns you made and any gift still on its way) is saved only in your own browser. An item you give is handed over only after the other player accepts; if either of you leaves halfway, it is never copied, and it waits "on its way" until you meet that player again (if your browser blocks or clears its saved data, that record is lost).</li>
       <li>Vigil collects nothing. The public Nostr relays, the BitTorrent trackers (if used) and the STUN servers (run by Google and Cloudflare) that your browser
         contacts to set up a connection see your IP address, as any website would. Players cannot send each other any text: names are generated, and
@@ -429,7 +434,7 @@ footer{color:var(--muted);font-size:.88rem;margin-top:24px}
     </ul>
   </section>
 
-  <footer>The Long Watch, milestone 27 (a connection report you can copy). Networking: <a href="https://github.com/dmotz/trystero">Trystero</a> 0.25.4 and <a href="https://github.com/paulmillr/noble-secp256k1">@noble/secp256k1</a> 3.2.0 (both MIT), kept in this folder.
+  <footer>The Long Watch, milestone 28 (spare relays). Networking: <a href="https://github.com/dmotz/trystero">Trystero</a> 0.25.4 and <a href="https://github.com/paulmillr/noble-secp256k1">@noble/secp256k1</a> 3.2.0 (both MIT), kept in this folder.
     <a href="../workbench/">Back to the Workbench</a>.</footer>
 </div>
 <script type="module" src="js/main.js"></script>

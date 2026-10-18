@@ -30,7 +30,7 @@ export async function createAutoTransport(room, opts = {}) {
   let closed = false, first = null, lost = 0;
   const metAll = new Set(); // ids of players met on any path (counts only leave this file; capped)
 
-  const results = await Promise.allSettled(ORDER.map((kind) => createTrysteroTransport(kind, room, { relay: urlFor(kind), mute: opts.mute })));
+  const results = await Promise.allSettled(ORDER.map((kind) => createTrysteroTransport(kind, room, { relay: urlFor(kind), spares: kind === "nostr" ? opts.spares : opts.trackerSpares, relays: kind === "nostr" ? opts.relays : undefined, mute: opts.mute })));
   results.forEach((r, i) => { if (r.status === "fulfilled") parts.set(ORDER[i], r.value); else console.error(r.reason); });
   if (!parts.size) throw new Error("no transport could start");
   const selfId = [...parts.values()][0].selfId;

@@ -111,6 +111,7 @@ working features.
   link history when its link checks fail (it failed once this run, cause not found). Nothing players see changed.
 
 - **27. A connection report.** Done 2026-10-17, local relay and tracker only. A "Connection" line and a "Copy connection report" button in the game panel, numbers only (`js/net/report.js`): per path relays or trackers tried, open now, never opened and opened-then-closed; players met, gone, linked on one or both ways; connections rebuilt; and the sentence that public relays are untested by the builders (`PUBLIC_PLAY_TESTED_BY_BUILDERS`, checked against the CHANGELOG by `tests/report.test.mjs`). No relay address, id or name reaches it. Where the browser refuses the clipboard the text is shown selected in a box. The owner test checklist is in DESIGN.md. Limits: failed WebRTC handshakes are not counted (rebuilds after silence are); a relay open for less than `SAMPLE_MS` 1000 is counted as never opened.
+- **28. Spare relays.** Done 2026-10-18, local relays and trackers only; public relays untested (the sandbox cannot reach them). One list in `js/net/relays.js` (5 Nostr first choices equal to Trystero's own pick for this app id, 3 tracker first choices, 4 Nostr and 2 tracker spares; each entry names its source: the vendored Trystero list, or the builder's memory for `relay.damus.io` and `relay.primal.net`). Every socket's opens, failures (closed before opening) and closes after opening are counted (`js/net/sockets.js`) and shown in the report. When fewer than 2 sockets of a path are open 10 s after joining and no player is linked on that path, the spares are added (the room is joined again over the longer list; with a player linked it looks again every 5 s instead). Tested in `tests/spares.test.mjs` against a refused port, a server that never answers, one that opens and closes, and live test relays and trackers.
 
 ## Roadmap reviews
 - **2026-10-16 (after milestone 9, 10 increments since the founding).** What the CHANGELOG taught: (1) every shared
@@ -183,11 +184,8 @@ working features.
     devices on two networks, which lantern, what to copy). Test on local relays: the counts match what the test did, a
     refused relay is counted as refused, nothing from a peer reaches the copied text. The page says plainly whether online
     play over public relays has been tested, from the CHANGELOG.
-28. **NEXT: Spare relays (network).** Name the Nostr relays and BitTorrent trackers in one list in the code (Trystero's defaults
-    plus a few free, no-sign-up spares, with where each came from), count each socket's opens and failures, and when fewer
-    than 2 relays are open after 10 s, try spares from the list. Test with local relays that refuse, close, or never answer;
-    the page shows how many are open. Public relays stay untested from the sandbox; say so.
-29. **Footprints and wakes (a look step).** Players leave fading footprints on sand and meadow and a small wake in
+28. **Done (see above).** Was: Spare relays (network).
+29. **NEXT: Footprints and wakes (a look step).** Players leave fading footprints on sand and meadow and a small wake in
     shallow water, drawn by each browser from positions it already receives (others' too), so a group's path across the
     island can be read for a few seconds. Nothing sent; a cap on marks per player and on screen; reduced motion keeps
     footprints but no rippling; measure the frame cost at 375 and 1100 px.
@@ -222,7 +220,7 @@ working features.
 ## Known problems
 - **Online play over public relays and trackers is untested from the sandbox** (HTTP 403 on CONNECT every run, last
   2026-10-17 at milestone 26). Only the owner's test on milestone 1 covers the real network. Milestones 27 and 28 address
-  it from the code side; a real test still needs a person on two devices.
+  it from the code side (28: spare relays, also untested over the real network); a real test still needs a person on two devices.
 - **`both.test.mjs` link checks (open).** Failed once in this run's single pass (milestone 26): 3 s after Z saw W linked on
   both paths, "Z: W is linked twice and counted once" failed (Z's own counts were right: one double link, two single;
   so W's view of Z had probably lost a path) and later "no link on Z was dropped and rebuilt" counted 2 leaves on Z. The

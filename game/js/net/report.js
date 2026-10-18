@@ -7,7 +7,8 @@
 // Whether public online play has been tested is a constant written here and checked against the CHANGELOG by
 // tests/report.test.mjs, so the page cannot claim more than the changelog does.
 
-export const REPORT_MILESTONE = 27;
+import { MIN_OPEN_RELAYS, SPARE_AFTER_MS } from "./relays.js";
+export const REPORT_MILESTONE = 28;
 export const REPORT_MAX = 9999;
 // Online play over the public Nostr relays and BitTorrent trackers, tested by the builders since milestone 1: no.
 // (The owner's one test on 15 October 2026, milestone 1, is mentioned in the page's "About" text.)
@@ -29,7 +30,8 @@ function pathStats(status, kind) {
     const tried = num(sock.tried ?? o?.relays);
     const open = Math.min(tried, num(sock.open ?? o?.relaysOpen));
     const everOpened = Math.max(open, Math.min(tried, num(sock.everOpened)));
-    return { tried, open, everOpened, met: num(o?.met), left: num(o?.left), rebuilds: num(o?.rebuilds) };
+    const opens = num(sock.opens), failures = num(sock.failures), drops = num(sock.drops), pending = num(sock.pending), spares = num(sock.spares);
+    return { tried, open, everOpened, opens, failures, drops, pending, spares, met: num(o?.met), left: num(o?.left), rebuilds: num(o?.rebuilds) };
   };
   if (kind === "both") return Object.fromEntries(PATHS.map((k) => [k, grab(status?.byPath?.[k])]));
   if (kind === "nostr" || kind === "torrent") return { [kind]: grab(status) };
@@ -68,6 +70,15 @@ function pathLine(k, p, secs) {
   return parts.join("; ");
 }
 
+// Milestone 28: how often the sockets opened and failed, and whether spare addresses were added (numbers only).
+function countLine(k, p) {
+  if (!p.tried) return "";
+  const bits = [`${p.opens} ${p.opens === 1 ? "open" : "opens"}`, `${p.failures} failed before opening`, `${p.drops} closed after opening`];
+  if (p.pending) bits.push(`${p.pending} still connecting`);
+  bits.push(p.spares ? `${p.spares} spare addresses added after ${SPARE_AFTER_MS / 1000} s with fewer than ${MIN_OPEN_RELAYS} open` : "no spare addresses used");
+  return `${NAME[k]}, sockets: ${bits.join("; ")}`;
+}
+
 // The text the Copy button puts on the clipboard: plain lines, numbers and fixed words only.
 export function reportText(status, ctx = {}) {
   const f = reportFigures(status, ctx);
@@ -76,7 +87,7 @@ export function reportText(status, ctx = {}) {
   lines.push(`Way: ${way}`);
   lines.push(`Lantern: ${f.lantern}`);
   lines.push(`Time in the lantern: ${f.seconds} s`);
-  if (f.kind !== "local") for (const k of PATHS) if (f.paths[k]) lines.push(pathLine(k, f.paths[k], f.seconds));
+  if (f.kind !== "local") for (const k of PATHS) if (f.paths[k]) { lines.push(pathLine(k, f.paths[k], f.seconds)); const c = countLine(k, f.paths[k]); if (c) lines.push(c); }
   lines.push(`Players here now: ${f.now}`);
   if (f.kind !== "local") {
     lines.push(`Players met since entering: ${f.met}`);
@@ -100,7 +111,7 @@ export function reportLine(status, ctx = {}) {
     const p = f.paths[k];
     if (!p) continue;
     const label = k === "nostr" ? "Nostr" : "BitTorrent";
-    bits.push(p.tried ? `${label} ${p.open} of ${p.tried} open${p.tried - p.everOpened > 0 ? `, ${p.tried - p.everOpened} never opened` : ""}` : `${label} starting`);
+    bits.push(p.tried ? `${label} ${p.open} of ${p.tried} open${p.tried - p.everOpened > 0 ? `, ${p.tried - p.everOpened} never opened` : ""}${p.spares ? `, ${p.spares} spare added` : ""}` : `${label} starting`);
   }
   bits.push(`${f.met} ${f.met === 1 ? "player" : "players"} met`);
   if (f.rebuilds) bits.push(`${f.rebuilds} ${f.rebuilds === 1 ? "link" : "links"} rebuilt`);

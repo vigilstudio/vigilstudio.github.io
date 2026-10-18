@@ -303,20 +303,41 @@ dull ember with two curls of smoke. Reduced motion: no sway, ripple, blink, floa
 path, because that is its place in the game). Cost measured in headless Chromium (software canvas): the draw averages about 1.3 ms a
 frame with a shade on screen. Own drawing, no outside art.
 
+## Spare relays (milestone 28, `js/net/relays.js`, `js/net/sockets.js`)
+The one list of relays and trackers is `js/net/relays.js`; no other file names one, and no address ever comes from a peer. Each entry
+has a role and a source. Nostr first choices (5): the five relays Trystero 0.25.4's own shuffle picks for this app id (the
+test repeats the shuffle against the vendored list); BitTorrent first choices (3): the first three of Trystero's list. Source
+"trystero" means the address is in the vendored Trystero list (that says nothing about whether it is up today). Spares: Nostr
+`nos.lol` and `bucket.coracle.social` (source "trystero": in the vendored list; picked by the builder from it as names it recognised, not the shuffle's next ones), `relay.damus.io` and
+`relay.primal.net` (source "memory": well-known public relays the builder remembers; a search for a current list this run found no
+list confirming them, so they are unchecked); trackers `tracker.btorrent.xyz` and `tracker.files.fm:7073/announce` (source
+"trystero": the last two of Trystero's five). None of these has been reached from the build sandbox, whose proxy refuses them.
+How it works (`js/net/trystero.js`): the room joins over the first choices. `SPARE_AFTER_MS` (10000) later, if fewer than
+`MIN_OPEN_RELAYS` (2) of that path's sockets are open and no player is linked on that path, the room is left and joined again over
+the first choices plus the spares (`config.relayConfig.urls`; the library keeps the sockets already open). If a player is linked, it
+looks again every `SPARE_RETRY_MS` (5000) rather than drop their links. It happens at most once per transport, and is not counted as a rebuild.
+With 2 or more open at the check, or no spares, nothing changes. Counting (`js/net/sockets.js`): a subclass of `WebSocket`, installed
+before the library opens one, counts per address the tries, opens, sockets closed before they opened (failures: refused,
+unreachable, rejected) and sockets closed after opening; a socket that is still connecting is "pending", neither. At most 64
+addresses are kept; only sums leave. The report and the "Connection" line show these (numbers only). Limits: a lone player with one
+relay open and nobody linked gets spares only at the 10 s check; a player whose other relays are slow but not dead may get spares
+needlessly (costs a few more sockets); the spares have never been tried over the real network.
+Test flags (loopback pages only): `?relays=` (up to 4 first-choice relays), `?spare=` (Nostr spares), `?tspare=` (tracker spares).
+
 ## The connection report and the owner's online test (milestone 27, `js/net/report.js`)
 The game panel has a "Connection" line and a "Copy connection report" button. Both are built by `js/net/report.js` from the
 transport's `status()` and from the player's own lantern number, seconds in the lantern and players here now; nothing else.
 Every figure is read as a whole number clamped to 0..`REPORT_MAX` (9999) and printed inside fixed words, so a string, an address
 or a name that somehow reached `status()` would print as 0, not as itself. Relay and tracker addresses stay inside
-`js/net/trystero.js` (a once-a-second sample, `SAMPLE_MS`, remembers which sockets were ever seen open, as a set of addresses that
-never leaves the closure); only counts leave it. What the text holds: the way (Nostr, BitTorrent, both, or local), lantern number,
+`js/net/trystero.js` and `js/net/sockets.js` (since milestone 28 every WebSocket's open and close is counted per address as it
+happens; the once-a-second sample of milestone 27 is gone); only counts leave them. What the text holds: the way (Nostr, BitTorrent, both, or local), lantern number,
 seconds in the lantern, per path relays or trackers tried / open now / never opened / opened and then closed, players here now,
 players met since entering (distinct ids, capped at `MAX_MET` 200), players gone again, links on both ways or one, connections
 rebuilt by the link watchdog, messages dropped in transit, and one sentence that public relays have not been tested by the builders
 (`PUBLIC_PLAY_TESTED_BY_BUILDERS`, checked against the newest CHANGELOG entry in `tests/report.test.mjs`). With a test relay (`?relay=`) a path has
 one address, so "tried" is 1; on the live site it is the number of relays or trackers Trystero chose from its own lists.
-Limits: "never opened" also counts a relay still connecting; a relay that opens and closes inside one sample is counted as never
-opened; failed WebRTC handshakes are not counted (only rebuilds after silence and players who joined and went); the report is
+Limits: "never opened" also counts a relay still connecting (the milestone 27 limit that a relay open for under a second was counted as
+never opened ended with milestone 28's per-socket counting); failed WebRTC handshakes are not counted (only rebuilds after silence and players who joined and went); the report is
 as good as this page's own view. The button writes to the clipboard only on a click; where the browser refuses, the text appears
 in a read-only box, selected, to copy by hand. Nothing is sent anywhere by the report.
 
@@ -392,6 +413,8 @@ game/
   js/net/transport.js   the transport interface, ?net= and ?relay= parsing
   js/net/local.js       BroadcastChannel transport (tests, offline)
   js/net/trystero.js    Trystero transport (nostr, torrent); link watchdog and offer-renewal fix
+  js/net/relays.js      the one list of relays and trackers (role, source), the 2-open and 10 s thresholds
+  js/net/sockets.js     counts WebSocket tries, opens and failures per address (sums only leave)
   js/net/report.js      the connection report: the "Connection" line and the copied text, numbers only, from status() (pure)
   js/net/auto.js        the default transport: Nostr and BitTorrent at once, one peer list (first link wins, keepalive on the second link)
   vendor/               Trystero 0.25.4 and @noble/secp256k1 3.2.0, with licences
@@ -419,12 +442,12 @@ game/
   tests/report.test.mjs    node checks of the report builder (hostile status, clamping, the untested statement against the CHANGELOG), then local-relay pages: a live relay and a refused tracker counted, the clipboard text equals the page's, no id, name or address in it, a leaver counted once, a refused relay, both refused, a relay closed mid-play, no clipboard, local mode
   tests/loop.mjs           runs test files N times each, one at a time, and prints one exact `name passed/N` line per file (`node game/tests/loop.mjs 5 beacon talk`; no names means every file)
 ```
-URL flags: `?net=auto|local|nostr|torrent` (default auto), `?mute=N` (tests only), `?hour=0..7.99` (pin the night hour), `?relay=ws://127.0.0.1:PORT` and `?tracker=ws://127.0.0.1:PORT` (tests only, loopback pages), `?look=plain|low` (turn the living look off or start it at its lowest level), `?day=N` (pin the keeper's notes' day; loopback pages only), `?shadeclock=N` (shift the shades' clock by N ms; loopback pages only), `?clockskew=N` (the clock check pretends this page's clock is N s off; loopback pages only), `#room=N`.
+URL flags: `?net=auto|local|nostr|torrent` (default auto), `?mute=N` (tests only), `?hour=0..7.99` (pin the night hour), `?relay=ws://127.0.0.1:PORT`, `?tracker=ws://127.0.0.1:PORT`, `?relays=`, `?spare=` and `?tspare=` (comma lists on this machine; tests only, loopback pages), `?look=plain|low` (turn the living look off or start it at its lowest level), `?day=N` (pin the keeper's notes' day; loopback pages only), `?shadeclock=N` (shift the shades' clock by N ms; loopback pages only), `?clockskew=N` (the clock check pretends this page's clock is N s off; loopback pages only), `#room=N`.
 `index.html` carries a Content-Security-Policy meta tag (scripts from 'self' plus the import map's hash; change the
 import map and the hash must be recomputed). `window.__longWatch` exposes read-only copies of the world, self and peers for the tests.
 
 ## Testing
-`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs`, `node game/tests/craftgive.test.mjs`, `node game/tests/fishing.test.mjs`, `node game/tests/lobby.test.mjs`, `node game/tests/craft.test.mjs`, `node game/tests/beacon.test.mjs`, `node game/tests/living.test.mjs`, `node game/tests/quests.test.mjs`, `node game/tests/shades.test.mjs`, `node game/tests/rank.test.mjs`, `node game/tests/clock.test.mjs`, `node game/tests/report.test.mjs` and the others in `tests/` (add `--local` to skip the WebRTC part,
+`node game/tests/presence.test.mjs`, `node game/tests/talk.test.mjs` and `node game/tests/world.test.mjs`, `node game/tests/gather.test.mjs`, `node game/tests/give.test.mjs`, `node game/tests/craftgive.test.mjs`, `node game/tests/fishing.test.mjs`, `node game/tests/lobby.test.mjs`, `node game/tests/craft.test.mjs`, `node game/tests/beacon.test.mjs`, `node game/tests/living.test.mjs`, `node game/tests/quests.test.mjs`, `node game/tests/shades.test.mjs`, `node game/tests/rank.test.mjs`, `node game/tests/clock.test.mjs`, `node game/tests/report.test.mjs`, `node game/tests/spares.test.mjs` and the others in `tests/` (add `--local` to skip the WebRTC part,
 `SHOTS=dir` for screenshots), then
 `node tools/page_check.mjs game/`. Every new shared feature gets a check in the test: what one page does,
 the other must see.

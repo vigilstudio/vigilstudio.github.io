@@ -35,6 +35,20 @@ export function pickTestRelay(search, param = "relay") {
 // Test-only: the same for a BitTorrent tracker on this machine (?tracker=ws://127.0.0.1:PORT).
 export const pickTestTracker = (search) => pickTestRelay(search, "tracker");
 
+// Test-only: a short list of spare relays or trackers on this machine (?spare=ws://127.0.0.1:A,ws://127.0.0.1:B), at most
+// MAX_TEST_SPARES, each accepted by the same rule; anything else in the list is dropped. null when the flag is absent.
+export const MAX_TEST_SPARES = 4;
+export function pickTestList(search, param = "spare") {
+  const raw = new URLSearchParams(search).get(param);
+  if (raw === null) return null;
+  const out = [];
+  for (const part of raw.split(",").slice(0, MAX_TEST_SPARES)) {
+    const u = pickTestRelay("?x=" + encodeURIComponent(part), "x");
+    if (u && !out.includes(u)) out.push(u);
+  }
+  return out;
+}
+
 // Test-only: seconds (1 to 30) during which a page neither sends nor hears anything, imitating a half-open link.
 // Like ?relay=, main.js uses it only on a page served from this machine.
 export function pickTestMute(search) {
@@ -53,7 +67,7 @@ export async function createTransport(kind, room, opts = {}) {
   }
   const { createTrysteroTransport } = await import("./trystero.js");
   // a test relay (Nostr) or tracker (BitTorrent) on this machine replaces the public list for that path
-  return createTrysteroTransport(kind, room, { ...opts, relay: (kind === "torrent" ? opts.tracker : opts.relay) || undefined });
+  return createTrysteroTransport(kind, room, { ...opts, relay: (kind === "torrent" ? opts.tracker : opts.relay) || undefined, spares: kind === "torrent" ? opts.trackerSpares : opts.spares, relays: kind === "torrent" ? undefined : opts.relays });
 }
 
 // The biggest message the game will look at, measured as JSON bytes. Real messages are under 100 bytes;

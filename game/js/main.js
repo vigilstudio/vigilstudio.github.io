@@ -3,7 +3,7 @@ import { figurePose } from "./figure.js";
 import { generateWorld, spawnFor, isBlocked, tileAt, T, worldFingerprint } from "./world.js";
 import { nameFor, colourFor, newSeed, isSeed } from "./names.js";
 import { reportLine, reportText } from "./net/report.js";
-import { createTransport, pickKind, pickTestRelay, pickTestTracker, pickTestMute } from "./net/transport.js";
+import { createTransport, pickKind, pickTestRelay, pickTestTracker, pickTestList, pickTestMute } from "./net/transport.js";
 import { createPresence } from "./presence.js";
 import { createInput } from "./input.js";
 import { createTalk, PHRASES, EMOTES } from "./talk.js";
@@ -40,6 +40,8 @@ const netKind = pickKind(location.search);
 const onLoopback = location.hostname === "127.0.0.1" || location.hostname === "localhost";
 const testRelay = onLoopback ? pickTestRelay(location.search) : null; // ?relay= is ignored on the live site
 const testTracker = onLoopback ? pickTestTracker(location.search) : null; // ?tracker= likewise (a BitTorrent tracker on this machine)
+const testRelays = onLoopback ? pickTestList(location.search, "relays") : null; // ?relays= several relays on this machine as the first choice (tests)
+const testSpares = onLoopback ? pickTestList(location.search, "spare") : null, testTrackerSpares = onLoopback ? pickTestList(location.search, "tspare") : null; // ?spare= and ?tspare= likewise
 const testMute = onLoopback ? pickTestMute(location.search) : 0;     // so is ?mute=
 const clockSkew = pickClockSkew(location.search, onLoopback);         // and ?clockskew= (seconds, for the clock check only)
 let clockCheck = null;
@@ -124,7 +126,7 @@ async function enter() {
   $("enter").disabled = true;
   stopLook();
   try {
-    net = await createTransport(netKind, `lantern-${roomNo}`, { relay: testRelay, tracker: testTracker, mute: testMute });
+    net = await createTransport(netKind, `lantern-${roomNo}`, { relay: testRelay, tracker: testTracker, relays: testRelays ?? undefined, spares: testSpares ?? undefined, trackerSpares: testTrackerSpares ?? undefined, mute: testMute });
   } catch (e) {
     console.error(e);
     $("status").textContent = "Could not start networking in this browser.";
@@ -757,7 +759,7 @@ $("copyreport").addEventListener("click", async () => {
 // ---- where the others are: a lobby room apart from the lanterns (js/lobby.js). A page inside a lantern answers a newcomer's
 // question with its lantern number; a page on the landing screen asks for LOOK_S seconds, only when its player presses the button ----
 let lobbyNet = null, lobbyResp = null, lookNet = null, look = null, lookTimer = 0, lookEnd = 0, lookCounts = null, lookState = "";
-const lobbyOpts = () => ({ relay: testRelay, tracker: testTracker, mute: testMute });
+const lobbyOpts = () => ({ relay: testRelay, tracker: testTracker, relays: testRelays ?? undefined, spares: testSpares ?? undefined, trackerSpares: testTrackerSpares ?? undefined, mute: testMute });
 // The lobby is joined LOBBY_JOIN_DELAY_S after entering, so the lantern's own connections are made first
 // (milestone 21: joining both at once made the craft test's reconnect fail and log a WebRTC OperationError).
 let lobbyJoin = 0;
