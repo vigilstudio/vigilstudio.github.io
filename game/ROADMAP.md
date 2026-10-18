@@ -112,6 +112,7 @@ working features.
 
 - **27. A connection report.** Done 2026-10-17, local relay and tracker only. A "Connection" line and a "Copy connection report" button in the game panel, numbers only (`js/net/report.js`): per path relays or trackers tried, open now, never opened and opened-then-closed; players met, gone, linked on one or both ways; connections rebuilt; and the sentence that public relays are untested by the builders (`PUBLIC_PLAY_TESTED_BY_BUILDERS`, checked against the CHANGELOG by `tests/report.test.mjs`). No relay address, id or name reaches it. Where the browser refuses the clipboard the text is shown selected in a box. The owner test checklist is in DESIGN.md. Limits: failed WebRTC handshakes are not counted (rebuilds after silence are); a relay open for less than `SAMPLE_MS` 1000 is counted as never opened.
 - **28. Spare relays.** Done 2026-10-18, local relays and trackers only; public relays untested (the sandbox cannot reach them). One list in `js/net/relays.js` (5 Nostr first choices equal to Trystero's own pick for this app id, 3 tracker first choices, 4 Nostr and 2 tracker spares; each entry names its source: the vendored Trystero list, or the builder's memory for `relay.damus.io` and `relay.primal.net`). Every socket's opens, failures (closed before opening) and closes after opening are counted (`js/net/sockets.js`) and shown in the report. When fewer than 2 sockets of a path are open 10 s after joining and no player is linked on that path, the spares are added (the room is joined again over the longer list; with a player linked it looks again every 5 s instead). Tested in `tests/spares.test.mjs` against a refused port, a server that never answers, one that opens and closes, and live test relays and trackers.
+- **29. Footprints and wakes.** Done 2026-10-18, a look step (`js/tracks.js`). Every walker leaves fading footprints on sand and meadow and a spreading wake in shallow water, drawn by each browser from positions it already has; nothing is sent. Marks are capped per walker and in all; reduced motion keeps footprints and stops the wakes spreading; `?tracks=off` leaves them out. Details and frame cost in the CHANGELOG. Public-relay online play untested.
 
 ## Roadmap reviews
 - **2026-10-16 (after milestone 9, 10 increments since the founding).** What the CHANGELOG taught: (1) every shared
@@ -185,11 +186,11 @@ working features.
     refused relay is counted as refused, nothing from a peer reaches the copied text. The page says plainly whether online
     play over public relays has been tested, from the CHANGELOG.
 28. **Done (see above).** Was: Spare relays (network).
-29. **NEXT: Footprints and wakes (a look step).** Players leave fading footprints on sand and meadow and a small wake in
+29. **Done (see above).** Was: Footprints and wakes (a look step). Players leave fading footprints on sand and meadow and a small wake in
     shallow water, drawn by each browser from positions it already receives (others' too), so a group's path across the
     island can be read for a few seconds. Nothing sent; a cap on marks per player and on screen; reduced motion keeps
     footprints but no rippling; measure the frame cost at 375 and 1100 px.
-30. **A lobby that does not grow without end (network).** Pages in a lantern leave the lobby room when they hear more than
+30. **NEXT: A lobby that does not grow without end (network).** Pages in a lantern leave the lobby room when they hear more than
     a set number of others there (a constant in code), and rejoin when it is quiet; an asker still gets answers from those
     who stay. Test with 14 or more local pages: links per page stay under the cap, the hint still names the busiest lantern.
 31. **Steadier tests (test health, nothing for players).** Look at each flake with the logs the tests now print: `both`
@@ -218,6 +219,7 @@ working features.
 37. **Roadmap review.** Read the CHANGELOG of 27 to 36, rewrite this file from what was learned.
 
 ## Known problems
+- **`shadows.test.mjs` and `lobby.test.mjs` flakes (open, milestone 29).** The tester saw shadows 0/3 (3 reduced-motion and flicker checks) and lobby 0/2 ("the finished answer is still shown") in a loaded sandbox; the builder saw shadows 1/4 once, and the tester found shadows 0/2 on untouched code too. A later recheck passed lobby 3/3 (plus 3/3 and 2/2 under load) and shadows 1/1. Cause of either not found. Close each section's pages in the tests (milestone 31).
 - **Online play over public relays and trackers is untested from the sandbox** (HTTP 403 on CONNECT every run, last
   2026-10-17 at milestone 26). Only the owner's test on milestone 1 covers the real network. Milestones 27 and 28 address
   it from the code side (28: spare relays, also untested over the real network); a real test still needs a person on two devices.

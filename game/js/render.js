@@ -2,7 +2,7 @@
 // visible part is scaled up with a camera on the local player, avatars are drawn, and a night layer
 // with a pool of lantern light around every player goes on top.
 import { figurePose } from "./figure.js";
-import { T, LANDMARK_NAMES } from "./world.js";
+import { T, LANDMARK_NAMES, tileAt } from "./world.js";
 import { KIND_NAMES } from "./resources.js";
 import { PHRASES, EMOTES } from "./talk.js";
 import { edgeArrows } from "./arrows.js";
@@ -13,6 +13,7 @@ import { EMBER_TILES, SHADE_NEED } from "./shades.js";
 import { classify, D, EDGE, phaseOf, sway, foamState, sparkle, moonAt, starAlpha, STARS, fireflies, softStops, createGovernor } from "./living.js";
 import { CASTERS_MAX, shadowOf, keepDarkest, flameFlicker } from "./shadows.js";
 import { glowAt, GLOW_POOL } from "./skyglow.js";
+import { createTracks, MARKS_DRAWN, footAlpha, wakeRing } from "./tracks.js";
 import { RAIN_DROPS, MIST_BLOBS, MAX_MIST, rainDrops, mistBanks, nameAlpha } from "./weather.js";
 
 const TILE_SRC = 8;
@@ -96,6 +97,9 @@ export function createRenderer(canvas, world, opts = {}) {
   const living = classify(world), gov = createGovernor(opts.look === "low" ? 0 : 2);
   const plain = opts.look === "plain";
   let shadowsOn = !plain && opts.shadows !== false; // `?shadows=off` (tests, measuring) leaves the shadows out
+  let tracksOn = !plain && opts.tracks !== false; // `?tracks=off` (tests, measuring) leaves footprints and wakes out
+  const tracks = createTracks(), kindAt = (x, y) => { const t = tileAt(world, x, y); return t === T.SAND ? "sand" : t === T.MEADOW ? "meadow" : t === T.SHALLOW ? "wake" : null; };
+  let drawnMarks = [], stressN = 0; // stressN: tests only, a fixed crowd of made-up marks round the camera to measure the worst case
   let shadowList = [], lastFlame = null, stoneView = null;
   const samples = new Float32Array(240), frames = new Float32Array(240); let nSamp = 0, prevT = 0, drawCalls = 0;
   let nameDraw = [], flyCount = 0, mistCount = 0, dropCount = 0, lastSky = null, lastGlow = null;
@@ -139,6 +143,45 @@ export function createRenderer(canvas, world, opts = {}) {
       const cx = bx + s.dx * half * 0.9, cy = by + s.dy * half * 0.9;
       if (level >= 2) { g.fillStyle = `rgba(0,0,0,${(s.alpha * 0.45).toFixed(3)})`; g.beginPath(); g.ellipse(cx, cy, half * 1.12, wd * 1.35, ang, 0, Math.PI * 2); g.fill(); }
       g.fillStyle = `rgba(0,0,0,${(s.alpha * (level >= 2 ? 0.7 : 1)).toFixed(3)})`; g.beginPath(); g.ellipse(cx, cy, half * (level >= 2 ? 0.88 : 1), wd, ang, 0, Math.PI * 2); g.fill();
+    }
+  }
+
+  // ---- footprints and wakes (milestone 29): worked out here from the positions this browser already holds; a footprint
+  // on sand or meadow every 0.6 tile walked, a ring on shallow water every 0.45, fading in 6 s and 2.2 s. Drawn under the
+  // players and the night layer, so they show where a lantern lights them. Level 0: none; level 1: up to 120 marks and
+  // wakes that do not spread; level 2: up to 300. Reduced motion keeps the footprints and holds the wake rings still. ----
+  function stressMarks(t, level, me, max) {
+    const out = [];
+    for (let i = 0; i < Math.min(stressN, max); i++) {
+      const wake = i % 5 === 0, a = i * 2.399963, r = 0.6 + (i % 17) * 0.45; // a spiral of marks round the player, a fifth of them wakes
+      out.push({ o: "s" + (i % 12), x: me.x + Math.cos(a) * r, y: me.y + Math.sin(a) * r * 0.7, ang: a, ground: wake ? "wake" : i % 2 ? "sand" : "meadow", t: t - (i * 37) % (wake ? 2000 : 5500) });
+    }
+    return out;
+  }
+  const FOOT_RGB = { sand: "44,32,14", meadow: "22,42,16" };
+  function drawTracks(t, reduce, level, camX, camY, tile, me, peers) {
+    drawnMarks = [];
+    if (!tracksOn) { tracks.clear(); return; }
+    const walkers = [{ id: "me", x: me.x, y: me.y, moving: !!me.moving }];
+    for (const p of peers.values()) walkers.push({ id: p.id, x: p.x, y: p.y, moving: !!p.moving });
+    tracks.update(t, walkers, kindAt);
+    const max = MARKS_DRAWN[level];
+    if (!max) return;
+    const still = reduce || level < 2, W = g.canvas.width, H = g.canvas.height;
+    drawnMarks = stressN ? stressMarks(t, level, me, max) : tracks.list(max);
+    for (const m of drawnMarks) {
+      const sx = m.x * tile - camX, sy = m.y * tile - camY;
+      if (sx < -tile || sy < -tile || sx > W + tile || sy > H + tile) continue;
+      const age = t - m.t;
+      if (m.ground === "wake") {
+        const w = wakeRing(age, still); if (!(w.a > 0.005)) continue;
+        g.strokeStyle = `rgba(200,225,245,${w.a.toFixed(3)})`; g.lineWidth = Math.max(1, tile * 0.05);
+        g.beginPath(); g.ellipse(sx, sy, w.r * tile, w.r * tile * 0.55, 0, 0, Math.PI * 2); g.stroke();
+      } else {
+        const a = footAlpha(age, m.ground); if (!(a > 0.005)) continue;
+        g.fillStyle = `rgba(${FOOT_RGB[m.ground]},${a.toFixed(3)})`;
+        g.beginPath(); g.ellipse(sx, sy, tile * 0.115, tile * 0.065, m.ang, 0, Math.PI * 2); g.fill();
+      }
     }
   }
 
@@ -402,7 +445,7 @@ export function createRenderer(canvas, world, opts = {}) {
     const n = Math.min(nSamp, 240); if (!n) return { frames: 0, level: gov.level };
     const a = Array.from(samples.subarray(0, n)).sort((p, q) => p - q), f = Array.from(frames.subarray(0, n)).filter(v => v > 0 && v < 500).sort((p, q) => p - q);
     const mean = (v) => v.reduce((p, q) => p + q, 0) / (v.length || 1), pct = (v, q) => v.length ? v[Math.min(v.length - 1, Math.floor(v.length * q))] : 0;
-    return { frames: nSamp, level: gov.level, drawMean: mean(a), drawP95: pct(a, 0.95), drawMax: a[a.length - 1], frameMean: mean(f), frameP95: pct(f, 0.95), fps: f.length ? 1000 / mean(f) : 0, fireflies: flyCount, mistBanks: mistCount, drops: dropCount, names: nameDraw, sky: lastSky, flame: lastFlame ? { ...lastFlame } : null, glow: lastGlow ? { kind: lastGlow.kind, amount: lastGlow.amount, tint: lastGlow.tint.slice(), darkAdd: lastGlow.darkAdd, shadowLen: lastGlow.shadowLen } : null, shadows: shadowList.length, shadowList: shadowList.map(s => ({ x: s.x, y: s.y, kind: s.kind, dx: s.dx, dy: s.dy, len: s.len, alpha: s.alpha })) };
+    return { frames: nSamp, level: gov.level, drawMean: mean(a), drawP95: pct(a, 0.95), drawMax: a[a.length - 1], frameMean: mean(f), frameP95: pct(f, 0.95), fps: f.length ? 1000 / mean(f) : 0, fireflies: flyCount, mistBanks: mistCount, drops: dropCount, names: nameDraw, sky: lastSky, flame: lastFlame ? { ...lastFlame } : null, glow: lastGlow ? { kind: lastGlow.kind, amount: lastGlow.amount, tint: lastGlow.tint.slice(), darkAdd: lastGlow.darkAdd, shadowLen: lastGlow.shadowLen } : null, tracks: { on: tracksOn, marks: tracks.size(), drawn: drawnMarks.length, feet: drawnMarks.filter(m => m.ground !== "wake").length, wakes: drawnMarks.filter(m => m.ground === "wake").length, list: drawnMarks.map(m => ({ o: m.o, x: m.x, y: m.y, ground: m.ground, age: Math.round(prevT - m.t) })) }, shadows: shadowList.length, shadowList: shadowList.map(s => ({ x: s.x, y: s.y, kind: s.kind, dx: s.dx, dy: s.dy, len: s.len, alpha: s.alpha })) };
   }
 
   function draw(me, peers, stick, t, light, nodes, reach, fires, shades, env, watch, fishing) {
@@ -429,6 +472,7 @@ export function createRenderer(canvas, world, opts = {}) {
     const lt = glow ? { ...lt0, tint: glow.tint, glow } : lt0; // at dusk and dawn the night layer takes the sky's colour
     drawShadows(t, reduce, level, camX, camY, tile, W, H, me, peers, fires, watch, lt);
     drawGround(t, reduce, level, camX, camY, tile, W, H, lt);
+    drawTracks(t, reduce, level, camX, camY, tile, me, peers);
     lastSky = env ? { mist: env.mist, rain: env.rain, kind: env.kind, shades: env.shades } : null;
     if (env && !plain) drawMist(t, reduce, level, W, H, env.mist);
 
@@ -583,7 +627,7 @@ export function createRenderer(canvas, world, opts = {}) {
     }
   }
 
-  return { draw, resize, burst, setStone: (v) => { stoneView = v; }, stoneSeen: () => !!stoneView, arrows: () => lastArrows.map(a => ({ id: a.id, dist: a.dist, ang: a.ang })), lights: () => lastLights.map(l => ({ ...l })), stats, setShadows: (on) => { shadowsOn = !!on && !plain; }, setLevel: (l) => gov.set(Math.max(0, Math.min(2, l | 0))) };
+  return { draw, resize, burst, setStone: (v) => { stoneView = v; }, stoneSeen: () => !!stoneView, arrows: () => lastArrows.map(a => ({ id: a.id, dist: a.dist, ang: a.ang })), lights: () => lastLights.map(l => ({ ...l })), stats, setShadows: (on) => { shadowsOn = !!on && !plain; }, setTracks: (on) => { tracksOn = !!on && !plain; }, stressTracks: (n) => { stressN = Math.max(0, Math.min(600, n | 0)); }, setLevel: (l) => gov.set(Math.max(0, Math.min(2, l | 0))) };
 }
 
 // The lit lighthouse: a warm pool on the ground, a bright lamp at the top of the tower and two long beams that turn

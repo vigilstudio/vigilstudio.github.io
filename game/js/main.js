@@ -109,7 +109,7 @@ const canvas = $("view");
 const motionQuery = typeof matchMedia === "function" ? matchMedia("(prefers-reduced-motion: reduce)") : null;
 const reducedMotion = () => !!(motionQuery && motionQuery.matches);
 const lookFlag = new URLSearchParams(location.search).get("look"); // "plain" or "low" (tests, slow devices); anything else = full
-const renderer = createRenderer(canvas, world, { reducedMotion, look: lookFlag === "plain" || lookFlag === "low" ? lookFlag : "full", shadows: new URLSearchParams(location.search).get("shadows") !== "off" });
+const renderer = createRenderer(canvas, world, { reducedMotion, look: lookFlag === "plain" || lookFlag === "low" ? lookFlag : "full", shadows: new URLSearchParams(location.search).get("shadows") !== "off", tracks: new URLSearchParams(location.search).get("tracks") !== "off" });
 const minimap = createMinimap($("minimap"), world);
 const steps = createFootsteps();
 const strides = createStrideTracker();
@@ -862,6 +862,8 @@ window.__longWatch = {
   lights: () => renderer.lights(),
   perf: () => renderer.stats(),
   setLevel: (l) => renderer.setLevel(l),
+  setTracks: (on) => renderer.setTracks(on), // tests only: switch footprints and wakes on or off to measure and compare
+  stressTracks: (n) => (onLoopback && Number.isInteger(n) ? (renderer.stressTracks(n), true) : false), // tests only, and only on a page served from this machine: made-up marks to measure the worst case
   setShadows: (on) => renderer.setShadows(on), // tests only: switch the shadows on or off to measure and compare
   offer: (i) => !!give && give.offer(i),
   accept: () => !!give && give.accept(),
