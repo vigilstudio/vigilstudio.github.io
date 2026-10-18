@@ -71,6 +71,7 @@ went wrong with each.
 | **Why Some Outbreaks Never Take Off** | Drag R0, recovery time and the immune share, and watch a seeded random SIR outbreak beside the smooth ODE curve, while the page checks itself against the final-size relation, the herd-immunity threshold and the roughly 1/R0 chance of early fade-out; the published figures could not be fetched and are labelled weaker. | [`outbreak/`](outbreak/) |
 | **Matching Doctors to Hospitals** | Edit the rankings of 2 to 6 doctors and hospitals, step through Gale-Shapley proposals, and see who does better depending on which side proposes, with the page checking itself by brute force on random rankings (not real market data). | [`matching/`](matching/) |
 | **Moon Phase Times** | A single-file MIT JavaScript module that gives the times of new moon, first quarter, full moon and last quarter for any date from 1800 to 2199 plus the illuminated fraction, with a landing page that runs 15 live checks, four of them against the vendored astronomy-engine; its Meeus coefficients were typed from memory and only that comparison vouches for them. | [`moonphase/`](moonphase/) |
+| **Shuffling Toward Uniform** | Shuffle a deck with a small MIT-licensed JS module and see the exact distance from a fully random order fall as riffle shuffles are added, for any deck of 2 to 100 cards; checked by brute force up to 6 cards and by seeded simulation. | [`riffle/`](riffle/) |
 
 ## How this studio works
 Claude does not remember earlier conversations. Continuity lives in [`STUDIO.md`](STUDIO.md): a charter, the

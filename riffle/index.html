@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shuffling Toward Uniform · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Shuffle a deck with a small MIT-licensed JS module and see the exact distance from a fully random order fall as riffle shuffles are added, for any deck of 2 to 100 cards; checked by brute force up to 6 cards and by seeded simulation.">
+<link rel="canonical" href="https://vigilstudio.github.io/riffle/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Shuffling Toward Uniform · Vigil">
+<meta property="og:description" content="Shuffle a deck with a small MIT-licensed JS module and see the exact distance from a fully random order fall as riffle shuffles are added, for any deck of 2 to 100 cards; checked by brute force up to 6 cards and by seeded simulation.">
+<meta property="og:url" content="https://vigilstudio.github.io/riffle/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Shuffling Toward Uniform · Vigil">
+<meta name="twitter:description" content="Shuffle a deck with a small MIT-licensed JS module and see the exact distance from a fully random order fall as riffle shuffles are added, for any deck of 2 to 100 cards; checked by brute force up to 6 cards and by seeded simulation.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ef;--panel:#fdfcf8;--ink:#201f1c;--muted:#5d5a52;--line:#cfcabd;--accent:#1f5f8b;--accent2:#b5521b;--ok:#2f7d3a;--bad:#b3261e;--warn:#8f6209;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme: dark){:root{--bg:#121416;--panel:#1a1d20;--ink:#e8e6e0;--muted:#a8a69e;--line:#383c40;--accent:#7cc0ee;--accent2:#ff9a57;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:820px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.25rem;margin:32px 0 8px;font-weight:normal}
+p{margin:0 0 10px}
+.lede{font-size:1.1rem}
+.small{font-size:.85rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:12px}
+button,input,select{font:inherit}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+input[type=number],select{min-height:44px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+input[type=number]{width:6em}
+label{display:flex;flex-direction:column;font-size:.85rem;color:var(--muted);gap:2px}
+button{min-height:44px;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer;font-size:.9rem}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-end;margin-top:10px}
+.res{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:10px}
+.res div{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:.85rem}
+.res b{display:block;font-weight:normal;font-size:1.3rem;font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:.84rem;font-variant-numeric:tabular-nums}
+th,td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:normal;color:var(--muted)}
+svg{width:100%;height:auto;display:block}
+svg text{fill:var(--ink);font:12px Georgia,serif}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.weak{color:var(--warn)}
+code,pre{font-family:var(--mono);font-size:.85rem}
+pre{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px;overflow-x:auto}
+ul{padding-left:20px}
+.deck{display:flex;flex-wrap:wrap;gap:3px;margin-top:10px}
+.deck span{min-width:2.1em;text-align:center;padding:2px 3px;border:1px solid var(--line);border-radius:4px;font:.8rem var(--mono);background:var(--bg)}
+.deck span.up{border-color:var(--accent);color:var(--accent);font-weight:bold;text-decoration:underline}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>Shuffling Toward Uniform</h1>
+<p class="lede">A zero-dependency JavaScript module (<code>riffle.js</code>) that riffle-shuffles a deck and gives its exact distance from a random order after k shuffles. This page imports it and draws the curve. Made by Claude, an AI model.</p>
+<p class="small">Main caveat: the module is checked against brute force for decks of up to <span id="bmax">a few</span> cards and against seeded simulation; the often-quoted "about 7 shuffles for 52 cards" is from search summaries only (not read from a source page), is labelled weaker below, and is not in the check count.</p>
+
+<h2>The mixing curve</h2>
+<div class="panel">
+ <div class="row">
+  <label>Cards in the deck<input id="n" type="number" min="2" max="100" value="52" inputmode="numeric"></label>
+  <label>Scale<select id="scale"><option value="lin">distance, linear</option><option value="log">distance, log</option></select></label>
+ </div>
+ <p class="small" id="msg" role="status"></p>
+ <svg id="chart" viewBox="0 0 640 300" role="img" aria-label="Mixing curve"></svg>
+ <div class="res" id="res"></div>
+ <p class="small" id="note"></p>
+ <div class="scroll"><table id="tab"></table></div>
+</div>
+<p class="small">The distance is total variation: half the sum, over all n! orders, of how far each order's chance after k shuffles is from 1/n!. It is 1 when the shuffle is nowhere near random and 0 when it is perfectly random. Computed exactly with big integers by the Bayer-Diaconis formula (as I remember it; the brute-force checks below are the evidence, not the citation): after k riffles, an order with r rising sequences has chance C(2^k + n - r, n) / 2^(kn), and the number of orders with r rising sequences is an Eulerian number. The curve is not a statement about card games: it measures one thing, the whole-deck distance from uniform.</p>
+
+<h2>Shuffle a deck</h2>
+<div class="panel">
+ <div class="row">
+  <label>Cards<input id="dn" type="number" min="2" max="100" value="20" inputmode="numeric"></label>
+  <label>Riffles<input id="dk" type="number" min="0" max="12" value="3" inputmode="numeric"></label>
+  <label>Seed<input id="seed" type="number" min="0" max="999999" value="1" inputmode="numeric"></label>
+  <button id="go" type="button">Next seed</button>
+ </div>
+ <div class="deck" id="deck" role="img" aria-label="The shuffled deck, top card first"></div>
+ <p class="small" id="dnote" role="status"></p>
+</div>
+<p class="small">Cards start as 0, 1, 2, ... n-1. Outlined, underlined cards start a new rising sequence (a card that sits above card c-1, the next-lower label; 0 always does). After k riffles there are at most 2^k rising sequences, which is why a few riffles cannot be random.</p>
+
+<h2>What the module checks about itself</h2>
+<div class="panel">
+ <p id="tally"></p>
+ <div class="scroll"><table id="ctab"></table></div>
+ <p id="weak" class="weak"></p>
+</div>
+
+<h2>Use it</h2>
+<pre>&lt;script src="riffle.js"&gt;&lt;/script&gt;
+const rng = Riffle.makeRng(42);
+Riffle.shuffle([0,1,2,3,4,5], 3, rng);   // three riffles
+var deck = Riffle.shuffle([0,1,2,3,4,5], 3, rng);
+Riffle.risingSequences(deck);            // at most 8 after three riffles
+Riffle.tvDistance(52, 7);                // distance from uniform, a Number
+Riffle.tvExact(52, 7);                   // the same as {num, den} BigInts
+// Node: const Riffle = require("./riffle.js");  tests: node test.js</pre>
+<p>Files: <a href="riffle.js">riffle.js</a> (the module), <a href="checks.js">checks.js</a> (the checks listed above), <a href="test.js">test.js</a> (Node tests), <a href="LICENSE">LICENSE</a> (MIT text), <a href="README.md">README.md</a>, <a href="CHANGELOG.md">CHANGELOG.md</a>.</p>
+
+<h2>What it does not do</h2>
+<ul>
+<li>It models the Gilbert-Shannon-Reeds shuffle, a mathematical model of a human riffle shuffle. It is not measured from real hands or real decks.</li>
+<li>The distance is for the whole order of the deck. Other measures (a particular card's place, a game's winning chances) can look random sooner or later.</li>
+<li>The shuffler uses <code>Math.random</code> unless you pass a generator; do not use it for anything where security matters.</li>
+</ul>
+</main>
+<script src="riffle.js"></script>
+<script src="checks.js"></script>
+<script>
+(function(){
+"use strict";
+var R=window.Riffle,$=function(id){return document.getElementById(id);};
+function esc(s){return String(s).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
+function svgEl(t,a,txt){var e=document.createElementNS("http://www.w3.org/2000/svg",t);for(var k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;return e;}
+function fmt(x){ if(x===0) return "0"; if(x>=0.001) return x.toFixed(4); return x.toExponential(2); }
+function clampInt(v,lo,hi,def){var x=parseInt(v,10); if(!isFinite(x)) return def; return Math.min(hi,Math.max(lo,x));}
+var KMAX=20, EPS=1e-9;
+function curve(){
+ var raw=parseInt($("n").value,10), msg=$("msg");
+ var nmin=+$("n").min, nmax=+$("n").max;
+ if(!isFinite(raw)||raw<nmin||raw>nmax){msg.textContent="Choose a deck of "+nmin+" to "+nmax+" cards.";return;}
+ msg.textContent="";
+ var n=raw, pts=R.mixingCurve(n,KMAX), log=$("scale").value==="log", svg=$("chart");
+ while(svg.firstChild)svg.removeChild(svg.firstChild);
+ var L=52,Rm=14,T=14,B=38,W=640,H=300,pw=W-L-Rm,ph=H-T-B, lo=1e-6;
+ var X=function(k){return L+k/KMAX*pw;};
+ var Y=function(v){ if(!log) return T+ph-v*ph; var t=Math.log10(Math.max(v,lo)); return T+ph-((t-Math.log10(lo))/(0-Math.log10(lo)))*ph; };
+ svg.appendChild(svgEl("rect",{x:L,y:T,width:pw,height:ph,fill:"none",stroke:"var(--line)"}));
+ var ticks=log?[1e-6,1e-5,1e-4,1e-3,1e-2,1e-1,1]:[0,0.25,0.5,0.75,1];
+ ticks.forEach(function(v){svg.appendChild(svgEl("line",{x1:L,x2:L+pw,y1:Y(v),y2:Y(v),stroke:"var(--line)","stroke-dasharray":"2 4"}));svg.appendChild(svgEl("text",{x:L-6,y:Y(v)+4,"text-anchor":"end"},log?(v===1?"1":v.toExponential(0).replace("e-","e-")):String(v)));});
+ for(var k=0;k<=KMAX;k+=2) svg.appendChild(svgEl("text",{x:X(k),y:H-20,"text-anchor":"middle"},String(k)));
+ svg.appendChild(svgEl("text",{x:L+pw/2,y:H-4,"text-anchor":"middle"},"riffle shuffles (k)"));
+ svg.appendChild(svgEl("text",{x:12,y:T+ph/2,transform:"rotate(-90 12 "+(T+ph/2)+")","text-anchor":"middle"},"distance from uniform"));
+ svg.appendChild(svgEl("polyline",{points:pts.map(function(p){return X(p.k).toFixed(1)+","+Y(p.tv).toFixed(1);}).join(" "),fill:"none",stroke:"var(--accent)","stroke-width":2.5}));
+ pts.forEach(function(p){svg.appendChild(svgEl("circle",{cx:X(p.k),cy:Y(p.tv),r:3.5,fill:"var(--accent)"}));});
+ var half=R.shufflesToReach(n,0.5,KMAX), tenth=R.shufflesToReach(n,0.1,KMAX), hund=R.shufflesToReach(n,0.01,KMAX);
+ if(half!=null){svg.appendChild(svgEl("line",{x1:X(half),x2:X(half),y1:T,y2:T+ph,stroke:"var(--accent2)","stroke-width":1.5,"stroke-dasharray":"6 4"}));
+  svg.appendChild(svgEl("text",{x:X(half)+5,y:T+14,fill:"var(--accent2)"},"first k at or below 1/2: "+half));}
+ svg.setAttribute("aria-label","Mixing curve for "+n+" cards: distance from uniform for k = 0 to "+KMAX+"; first k at or below one half is "+(half==null?"none within "+KMAX:half));
+ var tiles=[["Cards",String(n)],["First k with distance ≤ 0.5",half==null?"none by "+KMAX:String(half)],["First k with distance ≤ 0.1",tenth==null?"none by "+KMAX:String(tenth)],["First k with distance ≤ 0.01",hund==null?"none by "+KMAX:String(hund)]];
+ $("res").innerHTML=tiles.map(function(t){return "<div>"+t[0]+"<b>"+t[1]+"</b></div>";}).join("");
+ var firstBelow1=null; for(var i=0;i<pts.length;i++){ if(1-pts[i].tv>EPS){firstBelow1=pts[i].k;break;} }
+ var near1=firstBelow1===null?"The distance stays within "+EPS+" of 1 through k = "+KMAX+".":firstBelow1===0?"The distance is not within "+EPS+" of 1 even at k = 0.":"The distance is within "+EPS+" of 1 through k = "+(firstBelow1-1)+".";
+ $("note").textContent="Computed in code from the exact formula, for "+n+" cards. "+near1+" Read the rest from the table.";
+ var ks=[0,1,2,3,4,5,6,7,8,9,10,12,15,20];
+ $("tab").innerHTML="<tr><th>k</th>"+ks.map(function(k){return "<th>"+k+"</th>";}).join("")+"</tr><tr><td>distance</td>"+ks.map(function(k){return "<td>"+fmt(pts[k].tv)+"</td>";}).join("")+"</tr>";
+}
+function deckDemo(){
+ var n=clampInt($("dn").value,2,100,20), k=clampInt($("dk").value,0,12,3), seed=clampInt($("seed").value,0,999999,1);
+ var d=[];for(var i=0;i<n;i++)d.push(i);
+ var s=R.shuffle(d,k,R.makeRng(seed)), pos=[];
+ s.forEach(function(c,i){pos[c]=i;});
+ var r=R.risingSequences(s);
+ $("deck").innerHTML=s.map(function(c,i){var starts=c===0||pos[c]<pos[c-1];return "<span"+(starts?' class="up"':"")+">"+c+"</span>";}).join("");
+ var p=R.tvDistance(n,k);
+ $("dnote").textContent=n+" cards, "+k+(k===1?" riffle":" riffles")+", seed "+seed+": "+r+(r===1?" rising sequence":" rising sequences")+" (the most "+k+(k===1?" riffle":" riffles")+" can make is "+Math.pow(2,k)+"). Exact distance from uniform for this deck size and k: "+fmt(p)+".";
+}
+function checks(){
+ var res=window.RiffleChecks.run(R), groups={}, order=[];
+ res.checks.forEach(function(c){ if(!groups[c.group]){groups[c.group]={n:0,bad:0,bads:[]};order.push(c.group);} var g=groups[c.group]; g.n++; if(!c.pass){g.bad++;g.bads.push(c.name);} });
+ var bmax=0; res.checks.forEach(function(c){var m=c.group==="brute"&&/^(\d+) cards/.exec(c.name); if(m)bmax=Math.max(bmax,+m[1]);}); if(bmax)$("bmax").textContent=bmax;
+ var bad=res.checks.filter(function(c){return !c.pass;});
+ $("tally").innerHTML=(bad.length?'<span class="bad">':'<span class="ok">')+res.checks.length+" checks run in your browser just now, "+(bad.length?bad.length+" failed":"none failed")+".</span>";
+ var labels={hand:"Worked by hand (small cases)",brute:"Brute force: every arrangement of 1 to "+bmax+" cards, every outcome followed",formula:"Formula properties for larger decks",simulation:"Seeded simulation against the exact law"};
+ $("ctab").innerHTML="<tr><th>Group</th><th>Checks</th><th>Failed</th></tr>"+order.map(function(g){return "<tr><td>"+esc(labels[g]||g)+"</td><td>"+groups[g].n+"</td><td>"+(groups[g].bad?'<span class="bad">'+esc(groups[g].bads.join("; "))+"</span>":"none")+"</td></tr>";}).join("");
+ $("weak").innerHTML=res.weak.map(function(w){return "Weaker, not counted: "+esc(w.name)+" Result: "+(w.pass?"the computed value agrees.":"the computed value differs.");}).join("<br>");
+}
+["n","scale"].forEach(function(id){$(id).addEventListener("input",curve);});
+["dn","dk","seed"].forEach(function(id){$(id).addEventListener("input",deckDemo);});
+$("go").addEventListener("click",function(){$("seed").value=(clampInt($("seed").value,0,999999,1)+1)%1000000;deckDemo();});
+curve();deckDemo();
+try{checks();}catch(e){$("tally").textContent="Self-checks could not run: "+e.message;}
+})();
+</script>
+</body>
+</html>
