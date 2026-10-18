@@ -76,9 +76,9 @@ Habits that have proven themselves. Follow them unless the run has a good reason
 - The chair runs `git fetch` and checks `origin/main` before launching the builders, again whenever any builder
   hands back, before launching the game tester, before writing any status wording (journal, game notes, profile
   drafts) and before each commit; if main's `game/` or piece table moved since the start (`git log <start
-  sha>..origin/main`), the game step stops and the advisor redoes that part of the brief. Push only in its own
-  command after reading test and scan output (10-15 12:40: push after a failed test; 10-16 08:40 and 10-17 20:50:
-  about 70 and 118 min of game work lost to milestones pushed mid-run, seen only at the final fetch).
+  sha>..origin/main`, start sha from the brief's last line), the game step stops and the advisor redoes that part of
+  the brief. Push only in its own command after reading test and scan output (10-15 12:40: push after a failed test;
+  10-16 08:40, 10-17 20:50, 10-18 05:38: about 70, 118 and 50 min of game work lost, seen only at the final push).
 - Every run the keeper compares each Workbench game passage (the Long Watch paragraph, the letter) with
   game/ROADMAP's "Done" list and the CHANGELOG's online-play status, updates what it may edit, and names any stale
   sentence in a protected passage for the owner (promoted from an experiment, seven runs: it flagged the protected
@@ -137,8 +137,8 @@ Changes only the owner can make to the routine. The owner can delete a line once
   in the background. Stop-hook reminders about uncommitted changes are noise mid-run (the chair commits only at the
   end); the routine could turn that hook off until then.
 - (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (about 2 h). Another run pushed to main mid-run
-  four times (10-16 01:45, 08:40, 10-17 20:50 dropped up to 118 min of game work; 21:39 a rebase conflict across
-  README, STUDIO, workbench, feed and sitemap). The chair could push a claim at start (`claim/<milestone>` branch or a
+  five times (10-16 01:45, 08:40, 10-17 20:50, 10-18 05:38 dropped up to 118 min of game work; 21:39 and 05:38
+  conflicts across README, STUDIO, workbench, feed and sitemap). The chair could push a claim at start (`claim/<milestone>` branch or a
   dated lock file); a run finding a claim under about 4 h old builds the next milestone or skips the game. The start
   check should also find the studio on `main` (19:17: HEAD detached).
 - (2026-10-16) `tools/game_patchnotes.py` splits game/CHANGELOG.md on `### ` only, so an entry under `## ` vanishes
@@ -153,10 +153,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-16: Direction updated; Pilish Poems make the first poems, so "poems" leaves the "not yet made" list.
-- 2026-10-16: game-loop proposal for the owner updated with the lost tester report. Not acted on: the profile's
-  2-draft cap left no game draft and it wrote "six goes" for the five-go toast (chair fixed; counts practice applies);
-  keeper's placeholder flag on a Pilish example string was a false positive (chair reworded the string).
 - 2026-10-17: parallel-builders experiment judged (five runs, 17:00 to 02:00) and promoted to Practices: no builder
   touched another's files in any run; whether the build phase got shorter is unmeasured, the game step sets the length.
 - 2026-10-17: vigil-security skill now greps all tracked and untracked files, vendored ones included, for e-mail
@@ -261,3 +257,10 @@ Changes only the owner can make to the routine. The owner can delete a line once
 - 2026-10-18: Proposals compressed to bring the file under about 150 lines above the changelog (was 157); journal
   proposal adds the fix-up agent's stub, proxy proposal the outbreak 403, POSTS proposal this run's trim to 30. Not
   acted on: "connect more reliably" overclaim and six wording notes (status-words practice already asks).
+- 2026-10-18: vigil-advisor skill now ends the brief with the start sha and opens the review with a fetch and
+  `git log <sha>..origin/main`, and flags counts that include info-only lines and doc text from memory; at 05:38
+  another run's milestone 28 (pushed 02:22 UTC) was found only at push, about 50 min of game work was dropped, and
+  review caught a "10 checks" that counted an info line and game text wrong from memory.
+- 2026-10-18: fetch practice ties the start sha to the brief and adds the 05:38 loss; overlap proposal updated (fifth
+  overlap, five-file conflict). Not acted on: profile deleted 2 drafts at 30 (POSTS proposal stands); CHANGELOG-failures
+  experiment not judged (two runs); matching page, Bell 55 and all game tests rc=0 went as briefed.
