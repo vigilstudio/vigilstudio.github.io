@@ -154,7 +154,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-17: Direction updated; contrast/ makes the first browser extension, so it leaves the "not yet made" list.
 - 2026-10-17: vigil-piece skill now forbids a title copied from the brief's label, has access words list every
   manifest permission, puts the main unverified caveat in the one-liner and keeps weak sources out of an agreement
   tally (or counts them); "Subject Colour Contrast", "activeTab only" (copied by the keeper), the missing install and
@@ -268,3 +267,9 @@ Changes only the owner can make to the routine. The owner can delete a line once
   the schedule may fire twice). Not acted on: profile agent found the 30-draft cap leaves no room for new drafts
   (POSTS proposal stands); CHANGELOG-failures experiment not judged (four runs); review's input max vs clamp must-fix
   and unsourced "careful" (status-words practice); toy, keeper, security 0 BLOCK and council went as briefed.
+- 2026-10-18: vigil-piece skill now has the builder break each self-check's input once to see it fail, label checks
+  that hold by construction and keep them out of tallies, and count the opening sentence's words; at 11:32 review
+  found dragonfold's straight-through count 0 by construction and the refiner cut a 31-word opening to 21. Not acted
+  on: fetch practice worked (fetched before each push, main did not move, nothing lost); CHANGELOG-failures
+  experiment not judged (five runs; stone and watch failures named); review's journal must-fix was timing only (chair
+  writes it last); game builder about 39 min of a 70 min run (game-loop proposal stands).

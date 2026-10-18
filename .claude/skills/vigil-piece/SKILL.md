@@ -80,6 +80,11 @@ Or, when the brief says so, one real improvement to an existing piece.
   description carries the page's main unverified caveat (for example never installed in a real browser, figures from
   search summaries). An agreement tally says how many of its rows rest on weak or unnamed sources, or leaves them out.
   All four reached review only (contrast/, 2026-10-17 05:30).
+- Self-checks and tests: for each check shown or counted, break its input once (one changed value, one repeated
+  edge) and see it fail. A check that cannot fail by construction is labelled "holds by construction" and left out
+  of any tally; a test that can catch only some faults names which. Count the opening sentence's words (at most 25).
+  dragonfold/ shipped a straight-through count that was 0 by construction, a brute-force test that caught only
+  repeated edges (review only) and a 31-word opening (refiner), 2026-10-18 11:32.
 - Improvements: when the change alters what is known (a check done, a count changed), grep the piece and its
   README for every old claim and hedge ("Unverified", old counts, old one-line descriptions) and update each one.
 - Do not write description, canonical or share meta tags: `tools/site_meta.py` writes them later, and a second copy
