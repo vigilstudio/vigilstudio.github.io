@@ -73,12 +73,13 @@ Habits that have proven themselves. Follow them unless the run has a good reason
 - Browser tests (page_check, game tests) run with `CHROME` set to the headless shell binary from the start; the
   default Chromium crashes in this sandbox. A test that fails once and passes on rerun is named in the journal with
   its failing check, never reported as passing (talk.test, 2026-10-15 10:45).
-- The chair runs `git fetch` and checks `origin/main` before launching the builders, again whenever any builder
-  hands back, before launching the game tester, before writing any status wording (journal, game notes, profile
-  drafts) and before each commit; if main's `game/` or piece table moved since the start (`git log <start
-  sha>..origin/main`, start sha from the brief's last line), the game step stops and the advisor redoes that part of
-  the brief. Push only in its own command after reading test and scan output (10-15 12:40: push after a failed test;
-  10-16 08:40, 10-17 20:50, 10-18 05:38: about 70, 118 and 50 min of game work lost, seen only at the final push).
+- The chair runs `git fetch` and checks `origin/main` before launching the builders, whenever a builder hands back,
+  before the game tester, before any status wording and before each commit. While the game builder works, a
+  background loop (Monitor, every 5 min) runs `git fetch -q && git log --oneline <start sha>..origin/main -- game/`
+  and on any output the chair stops the game builder at once. If main's `game/` or piece table moved (start sha from
+  the brief's last line), the game step stops and the advisor redoes that part of the brief. Push only in its own
+  command after reading test and scan output (10-15 12:40: push after a failed test; 10-16 08:40, 10-17 20:50, 10-18
+  05:38, 09:31: about 70, 118, 50 and 45 min of game work lost, each seen only after the builder finished).
 - Every run the keeper compares each Workbench game passage (the Long Watch paragraph, the letter) with
   game/ROADMAP's "Done" list and the CHANGELOG's online-play status, updates what it may edit, and names any stale
   sentence in a protected passage for the owner (promoted from an experiment, seven runs: it flagged the protected
@@ -138,11 +139,10 @@ Changes only the owner can make to the routine. The owner can delete a line once
   04:22 found a report.test flake the builder had passed 5/5) runs the rest, or a script runs loop.mjs over every file
   in the background. Stop-hook reminders about uncommitted changes are noise mid-run (the chair commits only at the
   end); the routine could turn that hook off until then.
-- (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (about 2 h). Another run pushed to main mid-run
-  five times (10-16 01:45, 08:40, 10-17 20:50, 10-18 05:38 dropped up to 118 min of game work; 21:39 and 05:38
-  conflicts across README, STUDIO, workbench, feed and sitemap). The chair could push a claim at start (`claim/<milestone>` branch or a
-  dated lock file); a run finding a claim under about 4 h old builds the next milestone or skips the game. The start
-  check should also find the studio on `main` (19:17: HEAD detached).
+- (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (about 2 h). Another run pushed mid-run six
+  times, twice in 4 h on 10-18 (05:38, 09:31: runs started minutes apart, so the schedule may fire twice), dropping
+  up to 118 min of game work and ~2.3M subagent tokens at 09:31. Fix the schedule, or push a claim at start
+  (`claim/<milestone>` branch); a run finding a claim under 4 h old skips the game. Start on `main` (19:17: detached).
 - (2026-10-16) `tools/game_patchnotes.py` splits game/CHANGELOG.md on `### ` only, so an entry under `## ` vanishes
   from the patch notes (07:20, review only), and it drops every paragraph not labelled Players can now / Fixed /
   Unverified (15:30: a known limit). It should stop on any other heading level and print each dropped paragraph.
@@ -154,16 +154,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-17: vigil-game skill now keeps every feature of the current Workbench game sentence unless the code removed
-  it, and has the builder re-read added DESIGN/ROADMAP/CHANGELOG/comment claims (absolutes scoped to their tests,
-  caps copied from code); 03:48 review made six wording fixes, four in game docs ("never twice", "stay MAX_PEERS",
-  a design line as fact, a stale tracker comment), and the chair restored the dropped clock note.
-- 2026-10-17: keeper-passages experiment judged (seven runs) and promoted to Practices: the keeper flagged the stale
-  protected Long Watch paragraph every run; both misses came from the game builder's sentence (skill fixed above).
-  Caveat-grep experiment not judged (three runs).
-- 2026-10-17: Direction's forms bullet and the fetch practice shortened to bring the file back under about 150
-  lines. Not acted on: game builder about 67 min and security's own test run never reported (game-loop proposal
-  stands); keeper flagged the dewpoint "ranges" overstatement before review (refiner and keeper working).
 - 2026-10-17: Direction updated; contrast/ makes the first browser extension, so it leaves the "not yet made" list.
 - 2026-10-17: vigil-piece skill now forbids a title copied from the brief's label, has access words list every
   manifest permission, puts the main unverified caveat in the one-liner and keeps weak sources out of an agreement
@@ -269,3 +259,12 @@ Changes only the owner can make to the routine. The owner can delete a line once
   game builder about 2 h with lobby/shadows flakes under load, not reproduced later (game-loop proposal stands);
   local main diverged (20 old local commits), reset to origin/main (overlap proposal's start check covers it);
   parallel builders worked.
+- 2026-10-18: fetch practice now has a background loop fetch every 5 min while the game builder works and stop it
+  as soon as origin/main gains a game/ commit; at 09:31 the builder's own fetches (start, before the 5x loop) missed
+  another run's milestone 29 and about 45 min (~2.3M subagent tokens) of game work was dropped at the end.
+- 2026-10-18: vigil-profile skill now runs the README script with `python3 -B`, deletes stray bytecode, never edits a .gitignore and reports `git status --short`; at 09:31 the chair's `git add -A`
+  committed a .pyc into the profile repository (removed in e7aec36).
+- 2026-10-18: overlap proposal shortened and updated with the sixth overlap (second in 4 h, runs minutes apart, so
+  the schedule may fire twice). Not acted on: profile agent found the 30-draft cap leaves no room for new drafts
+  (POSTS proposal stands); CHANGELOG-failures experiment not judged (four runs); review's input max vs clamp must-fix
+  and unsourced "careful" (status-words practice); toy, keeper, security 0 BLOCK and council went as briefed.
