@@ -25,7 +25,7 @@ import { lighthouseOf, watchKept, holdOut, insideBeam, createBeam, LIGHTHOUSE_RA
 import { createRank, createRankNet, titleFor, pointsToNext, TITLES, THRESHOLDS } from "./rank.js";
 import { createCraft, RECIPES, CRAFT_NAMES, ITEM_NAMES, LAMPS, recipeText, lampOf } from "./craft.js";
 import { createFishing, CAST_MAX, SHOAL_RANGE, BITE_WINDOW_S, BITE_WINDOW_STILL_S, LINE_MAX_S, GROUND_RADIUS } from "./fishing.js";
-import { createResponder, createAsker, suggest, lookText, LOBBY_ROOM, LOOK_S, LOBBY_JOIN_DELAY_S } from "./lobby.js";
+import { createResponder, createAsker, suggest, lookText, LOBBY_ROOM, LOOK_S, LOBBY_JOIN_DELAY_S, REJOIN_S, REJOIN_MAX_S } from "./lobby.js";
 import { createStone, NOTES, NOTE_NAMES, NOTE_HZ, TUNE_LEN, BEAT_MS, GLOW_S, REACH as STONE_REACH } from "./stone.js";
 import { createClockCheck, clockNote, pickClockSkew, CLOCK_WARN_S } from "./clock.js";
 
@@ -762,19 +762,32 @@ let lobbyNet = null, lobbyResp = null, lookNet = null, look = null, lookTimer = 
 const lobbyOpts = () => ({ relay: testRelay, tracker: testTracker, relays: testRelays ?? undefined, spares: testSpares ?? undefined, trackerSpares: testTrackerSpares ?? undefined, mute: testMute });
 // The lobby is joined LOBBY_JOIN_DELAY_S after entering, so the lantern's own connections are made first
 // (milestone 21: joining both at once made the craft test's reconnect fail and log a WebRTC OperationError).
-let lobbyJoin = 0;
-function startResponder() {
+// Milestone 30: a page that finds the lobby crowded (js/lobby.js, LOBBY_LINK_CAP) leaves it and looks again after a wait
+// that doubles each time it is still crowded (?lobbyrest=seconds replaces REJOIN_S on a page served from this machine).
+let lobbyJoin = 0, crowdLeaves = 0, rejoinWait = 0;
+const lobbyRest = (() => { const v = onLoopback ? Number(new URLSearchParams(location.search).get("lobbyrest")) : 0; return Number.isFinite(v) && v >= 1 && v <= REJOIN_S ? v : REJOIN_S; })();
+function startResponder(delayS = LOBBY_JOIN_DELAY_S) {
   clearTimeout(lobbyJoin);
   lobbyJoin = setTimeout(async () => {
-    if (!playing) return;
+    if (!playing || lobbyNet) return;
     try {
       const n = await createTransport(netKind, LOBBY_ROOM, lobbyOpts());
-      if (!playing) { n.leave(); return; }
-      lobbyNet = n; lobbyResp = createResponder(n, () => (playing ? roomNo : 0));
+      if (!playing || lobbyNet) { n.leave(); return; }
+      const born = performance.now();
+      lobbyNet = n;
+      lobbyResp = createResponder(n, () => (playing ? roomNo : 0), { leave: () => {
+        if (lobbyNet !== n) return;
+        crowdLeaves++;
+        // a page that stayed a good while before finding it crowded starts the waits again from the shortest
+        rejoinWait = performance.now() - born > 120000 ? lobbyRest : Math.min(REJOIN_MAX_S, (rejoinWait || lobbyRest / 2) * 2);
+        try { n.leave(); } catch { /* already gone */ }
+        lobbyNet = null; lobbyResp = null;
+        startResponder(rejoinWait * (0.75 + Math.random() * 0.5));
+      } });
     } catch (e) { console.warn("lobby not joined", e); } // the game itself does not depend on it
-  }, LOBBY_JOIN_DELAY_S * 1000);
+  }, delayS * 1000);
 }
-function stopResponder() { clearTimeout(lobbyJoin); if (lobbyNet) { try { lobbyNet.leave(); } catch { /* already gone */ } } lobbyNet = null; lobbyResp = null; }
+function stopResponder() { clearTimeout(lobbyJoin); rejoinWait = 0; if (lobbyNet) { try { lobbyNet.leave(); } catch { /* already gone */ } } lobbyNet = null; lobbyResp = null; }
 function paintLook() {
   const counts = lookCounts || new Array(7).fill(0), s = suggest(counts);
   $("lookstate").textContent = lookText(counts, lookState);
@@ -829,7 +842,7 @@ window.__longWatch = {
   sky: () => skyAt(world, shadeNow(), pinnedWeather),
   hud: () => ({ rebuilds: net ? net.status().rebuilds | 0 : 0, where: $("where").textContent, mapOn, minimapMarks: minimap.markCount(), stepsOn: steps.on, stepsPlayed: steps.played, stepsSupported: steps.supported, dropped: net ? net.status().dropped : 0, reducedMotion: reducedMotion() }),
   taps: () => ({ ...tapCounts }), // tests only (kept empty on the live site)
-  lobby: () => ({ looking: lookState, counts: lookCounts ? [...lookCounts] : null, text: $("lookstate").textContent, pick: $("lookpick").hidden ? 0 : Number($("lookpick").dataset.room), answered: lobbyResp ? lobbyResp.answered() : 0, asked: look ? look.sent() : 0, heard: look ? look.heard() : 0, inLobby: !!lobbyNet }),
+  lobby: () => ({ looking: lookState, counts: lookCounts ? [...lookCounts] : null, text: $("lookstate").textContent, pick: $("lookpick").hidden ? 0 : Number($("lookpick").dataset.room), answered: lobbyResp ? lobbyResp.answered() : 0, asked: look ? look.sent() : 0, heard: look ? look.heard() : 0, inLobby: !!lobbyNet, links: lobbyResp ? lobbyResp.links() : 0, crowdLeaves }),
   peerLinks: () => (net && net.peerLinks ? net.peerLinks() : {}),
   linkHistory: () => net ? (net.status().history || []) : [],
   self: () => ({ id: net && net.selfId, name: me.name, seed: me.seed, x: me.x, y: me.y, playing, room: roomNo, net: net && net.kind }),

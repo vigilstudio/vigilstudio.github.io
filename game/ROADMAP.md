@@ -190,10 +190,8 @@ working features.
     shallow water, drawn by each browser from positions it already receives (others' too), so a group's path across the
     island can be read for a few seconds. Nothing sent; a cap on marks per player and on screen; reduced motion keeps
     footprints but no rippling; measure the frame cost at 375 and 1100 px.
-30. **NEXT: A lobby that does not grow without end (network).** Pages in a lantern leave the lobby room when they hear more than
-    a set number of others there (a constant in code), and rejoin when it is quiet; an asker still gets answers from those
-    who stay. Test with 14 or more local pages: links per page stay under the cap, the hint still names the busiest lantern.
-31. **Steadier tests (test health, nothing for players).** Look at each flake with the logs the tests now print: `both`
+30. **Done (see above).** Was: A lobby that does not grow without end (network). Done 2026-10-18, local transport only. A page in a lantern that is linked to more than `LOBBY_LINK_CAP` (8) other lobby pages leaves the lobby room after a random 2 to 6 s (looking again first) and rejoins after `REJOIN_S` (60 s, doubling to `REJOIN_MAX_S` 240 s while it is still crowded); up to `ASKER_SLACK` (3) pages that sent a question are not counted. Once the lobby is over the cap the hint counts only the pages that stayed, so it is a sample. The cap is on settled links, not the first seconds of a join. Test: `tests/lobbycap.test.mjs` (14 pages plus an asker; not run over WebRTC).
+31. **NEXT: Steadier tests (test health, nothing for players).** Look at each flake (also `stone` and `watch`, each failed once in a full run on 2026-10-18) with the logs the tests now print: `both`
     (which link dropped; the diagnostics added in milestone 26), `living` (which pixels of the sky strip differ), `stone` (the
     second-round counts); give the dawn path check a margin it can keep (read until settled, median of five) and print the
     margin. End with every file 5 times in a row; any failure is a bug until its cause is found, time-boxed to 45 minutes.

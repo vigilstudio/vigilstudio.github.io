@@ -28,6 +28,18 @@ export const RE_ASK_S = 3;          // a player who has not answered is asked ag
 export const MAX_ASKS = 3;
 export const ANSWER_TTL_S = 60;     // an answer is used for this long
 export const MAX_ANSWERS = ROOM_SIZE * ROOMS;
+// Milestone 30: the lobby room is a mesh (every page linked to every other), so it must not grow without end. A page in a
+// lantern that has more than LOBBY_LINK_CAP other answering pages linked in the lobby leaves it after a random 2 to 6 s
+// (looking again before it goes, so pages do not all leave together) and tries again after REJOIN_S, doubling the wait up to
+// REJOIN_MAX_S each time it finds the lobby still crowded. Pages that are asking (they sent a question) are not counted,
+// except at most ASKER_SLACK of them, so a few newcomers do not push answerers out. The cap is on settled links: while pages
+// are still joining, a page can be linked to more for a few seconds.
+export const LOBBY_LINK_CAP = 8;
+export const LEAVE_MIN_S = 2;
+export const LEAVE_MAX_S = 6;
+export const REJOIN_S = 60;
+export const REJOIN_MAX_S = 240;
+export const ASKER_SLACK = 3;
 
 export function validAsk(m) {
   return !!m && typeof m === "object" && m.k === "lq" && Object.keys(m).length === 1;
@@ -41,18 +53,34 @@ export function createResponder(net, room, opts = {}) {
   const now = opts.now || (() => performance.now());
   const guard = createGuard(1 / ASK_GAP_S, 2);
   const known = new Set();
-  let answered = 0;
-  net.onPeerJoin((id) => { if (known.size < LOBBY_PEERS) known.add(id); });
-  net.onPeerLeave((id) => { known.delete(id); guard.forget(id); });
+  const links = new Set();   // every page linked in the lobby, not only the first LOBBY_PEERS
+  const askers = new Set();  // linked pages that sent a question
+  const after = opts.after || ((fn, ms) => setTimeout(fn, ms));
+  const rand = opts.rand || Math.random;
+  let answered = 0, timer = null, gone = false;
+  const others = () => links.size - Math.min(ASKER_SLACK, askers.size);
+  const check = () => {
+    if (gone || timer !== null || others() <= LOBBY_LINK_CAP) return;
+    timer = after(() => {
+      timer = null;
+      if (gone || others() <= LOBBY_LINK_CAP) return; // it quietened while waiting
+      gone = true;
+      if (opts.leave) opts.leave();
+    }, (LEAVE_MIN_S + rand() * (LEAVE_MAX_S - LEAVE_MIN_S)) * 1000);
+  };
+  net.onPeerJoin((id) => { if (typeof id !== "string") return; links.add(id); if (known.size < LOBBY_PEERS) known.add(id); check(); });
+  net.onPeerLeave((id) => { known.delete(id); links.delete(id); askers.delete(id); guard.forget(id); });
   net.onMessage((m, id) => {
-    if (typeof id !== "string" || !known.has(id) || !validAsk(m)) return;
+    if (typeof id !== "string" || !validAsk(m)) return;
+    if (links.has(id)) { askers.add(id); }
+    if (!known.has(id)) return;
     const r = room();
     if (!r) return;
     if (!guard.allow(id, now())) return;
     answered++;
     net.send({ k: "lr", r }, id);
   });
-  return { answered: () => answered };
+  return { answered: () => answered, links: () => links.size, others, left: () => gone };
 }
 
 // A page on the landing screen: asks, collects. `counts()` is the number of answers per lantern (index 1 to ROOMS).
