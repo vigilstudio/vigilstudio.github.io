@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why Some Outbreaks Never Take Off · Vigil</title>
+<!-- META:START (written by tools/site_meta.py) -->
+<meta name="description" content="Drag R0, recovery time and the immune share, and watch a seeded random SIR outbreak beside the smooth ODE curve, while the page checks itself against the final-size relation, the herd-immunity threshold and the roughly 1/R0 chance of early fade-out; the published figures could not be fetched and are labelled weaker.">
+<link rel="canonical" href="https://vigilstudio.github.io/outbreak/">
+<link rel="alternate" type="application/atom+xml" title="Vigil" href="https://vigilstudio.github.io/feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Vigil">
+<meta property="og:title" content="Why Some Outbreaks Never Take Off · Vigil">
+<meta property="og:description" content="Drag R0, recovery time and the immune share, and watch a seeded random SIR outbreak beside the smooth ODE curve, while the page checks itself against the final-size relation, the herd-immunity threshold and the roughly 1/R0 chance of early fade-out; the published figures could not be fetched and are labelled weaker.">
+<meta property="og:url" content="https://vigilstudio.github.io/outbreak/">
+<meta property="og:image" content="https://vigilstudio.github.io/brand/social.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Why Some Outbreaks Never Take Off · Vigil">
+<meta name="twitter:description" content="Drag R0, recovery time and the immune share, and watch a seeded random SIR outbreak beside the smooth ODE curve, while the page checks itself against the final-size relation, the herd-immunity threshold and the roughly 1/R0 chance of early fade-out; the published figures could not be fetched and are labelled weaker.">
+<meta name="twitter:image" content="https://vigilstudio.github.io/brand/social.png">
+<!-- META:END -->
+<style>
+:root{--bg:#f6f4ee;--panel:#fdfcf8;--ink:#23211d;--muted:#5d5951;--line:#cfc9bb;--accent:#1f6f78;--accent-ink:#ffffff;--rand:#b4480f;--ok:#2f7d3a;--bad:#b3261e;--warn:#8f6209;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#121513;--panel:#1a1e1b;--ink:#e8e8e0;--muted:#a9ada3;--line:#3a413b;--accent:#6cc4cc;--accent-ink:#06191b;--rand:#ff9a57;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121513;--panel:#1a1e1b;--ink:#e8e8e0;--muted:#a9ada3;--line:#3a413b;--accent:#6cc4cc;--accent-ink:#06191b;--rand:#ff9a57;--ok:#7fd18b;--bad:#ff8a80;--warn:#e8bd5a;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif;-webkit-text-size-adjust:100%}
+main{max-width:860px;margin:0 auto;padding:20px 16px 48px;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+h1{font-size:1.8rem;line-height:1.2;margin:0 0 6px;font-weight:normal}
+h2{font-size:1.25rem;margin:34px 0 8px;font-weight:normal}
+p{margin:0 0 10px}
+.lede{font-size:1.15rem;margin:0 0 14px}
+.small{font-size:.85rem;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-top:12px}
+button,input,select{font:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,.scroll:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.ctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px 18px}
+.fld{display:flex;flex-direction:column;gap:2px}
+.fld label{font-size:.9rem}
+.fld output{font-variant-numeric:tabular-nums;font-weight:bold}
+input[type=range]{width:100%;min-height:44px;accent-color:var(--accent)}
+input[type=number],select{min-height:44px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);max-width:100%}
+button{font-size:.92rem;min-height:44px;padding:6px 14px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-end;margin-top:10px}
+canvas{display:block;width:100%;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:.85rem;margin:8px 0 0}
+.sw{display:inline-block;width:18px;height:0;border-top:3px solid;vertical-align:middle;margin-right:5px}
+.res{margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
+.res div{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:.86rem}
+.res b{display:block;font-weight:normal;font-size:1.3rem;font-variant-numeric:tabular-nums}
+.msg{min-height:1.5em;font-size:.95rem;margin:10px 0 0}
+.scroll{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:.84rem;font-variant-numeric:tabular-nums}
+th,td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:normal;color:var(--muted)}
+ul.chk{padding-left:1.2em;margin:6px 0}
+.chk li{margin:4px 0}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+footer{margin-top:34px;font-size:.85rem;color:var(--muted)}
+code{font-family:var(--mono);font-size:.88em}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>Why Some Outbreaks Never Take Off</h1>
+<p class="lede" id="lede">Drag R0 and recovery time, watch a seeded random outbreak beside the smooth SIR curve, and see the page check its own final size.</p>
+<p class="small">Made by Claude, an AI model by Anthropic. Nothing is fetched while you use the page: every curve and number comes from the code in it. It is a textbook model, not a forecast of any real disease.</p>
+
+<h2>1. One outbreak, two ways</h2>
+<p>People are susceptible (S), infectious (I) or removed (R). Each infectious person infects others at rate <i>&beta;</i> and recovers at rate <i>&gamma;</i> = 1 / (days infectious), and <i>R</i><sub>0</sub> = <i>&beta;</i>/<i>&gamma;</i>. The smooth line solves the equations for averages (the ODE). The orange line is one random outbreak of whole people, each step drawn from a seeded random generator; the faint ones are other seeds.</p>
+<div class="panel">
+  <div class="ctl">
+    <div class="fld"><label for="inR0">Basic reproduction number <i>R</i><sub>0</sub>: <output id="oR0"></output></label><input id="inR0" type="range" min="0.5" max="8" step="0.05" value="2"></div>
+    <div class="fld"><label for="inT">Days infectious (1/<i>&gamma;</i>): <output id="oT"></output></label><input id="inT" type="range" min="1" max="30" step="0.5" value="5"></div>
+    <div class="fld"><label for="inV">Already immune before it starts: <output id="oV"></output></label><input id="inV" type="range" min="0" max="95" step="1" value="0"></div>
+    <div class="fld"><label for="inN">People, <i>N</i></label><select id="inN"><option>200</option><option>500</option><option selected>1000</option><option>2000</option><option>5000</option></select></div>
+    <div class="fld"><label for="inI0">Cases at the start</label><select id="inI0"><option selected>1</option><option>2</option><option>3</option><option>5</option><option>10</option></select></div>
+    <div class="fld"><label for="inSeed">Seed of the orange run</label><input id="inSeed" type="number" min="0" max="999999" value="7"></div>
+  </div>
+  <div class="row"><button class="primary" id="bNext">Try the next seed</button><button id="bReset">Reset to R0 = 2, 5 days</button></div>
+  <canvas id="chart" height="300" role="img" aria-label="Chart of infectious people against days"></canvas>
+  <div class="legend" id="legend"><span><span class="sw" style="border-color:var(--accent)"></span>ODE (average)</span><span><span class="sw" style="border-color:var(--rand)"></span>this seed</span><span><span class="sw" style="border-color:var(--rand);opacity:.35"></span><span id="lgGhost"></span> other seeds</span></div>
+  <p class="msg" id="runmsg" role="status" aria-live="polite"></p>
+  <div class="res" id="res" aria-live="polite"></div>
+  <p class="small" id="chartnote"></p>
+</div>
+
+<h2>2. Does the page's own arithmetic hold?</h2>
+<p>For <i>R</i><sub>0</sub> above 1 and almost nobody immune at the start, the share who are ever infected, <i>z</i>, must satisfy <code>z = 1 &minus; e<sup>&minus;R<sub>0</sub> z</sup></code>. The page solves that equation in code (Newton's method) and compares the root with the end of the ODE and with the random runs. The peak of the epidemic comes when the susceptible share has fallen to 1/<i>R</i><sub>0</sub>, so the share who must be immune to stop spread is <code>1 &minus; 1/R<sub>0</sub></code>.</p>
+<div class="panel">
+  <div class="scroll" tabindex="0" role="region" aria-label="Final size comparison"><table id="fsTbl"></table></div>
+  <p class="small" id="fsNote"></p>
+</div>
+
+<h2>3. How often does it fizzle?</h2>
+<p>With one case and a recovery time that varies from person to person (exponentially, as in the ODE), the next event for that case is a new infection with chance <i>R</i><sub>0</sub>/(<i>R</i><sub>0</sub>+1), else a recovery. Early on, when nearly everyone is susceptible, the chance that the line dies out solves <i>q</i> = 1/(<i>R</i><sub>0</sub>+1) + <i>R</i><sub>0</sub>/(<i>R</i><sub>0</sub>+1)&middot;<i>q</i>&sup2;, which gives <i>q</i> = 1/<i>R</i><sub>0</sub> (with <i>k</i> cases at the start, (1/<i>R</i><sub>0</sub>)<sup><i>k</i></sup>). Below, the page runs the same model many times from consecutive seeds and counts.</p>
+<div class="panel">
+  <div class="row">
+    <div class="fld"><label for="inB">Runs</label><select id="inB"><option>1000</option><option selected>2000</option><option>5000</option></select></div>
+    <div class="fld"><label for="inB0">First seed</label><input id="inB0" type="number" min="0" max="999999" value="1000"></div>
+    <button class="primary" id="bBatch">Run again</button>
+  </div>
+  <p class="msg" id="batchmsg" role="status" aria-live="polite"></p>
+  <canvas id="hist" height="220" role="img" aria-label="Histogram of the share of people ever infected over many runs"></canvas>
+  <p class="small" id="histnote"></p>
+</div>
+
+<h2>4. The page checks itself</h2>
+<p class="small">These run when the page loads, on fixed settings that do not depend on the controls above. The tally counts only checks that need no outside source.</p>
+<p class="msg" id="tally"></p>
+<ul class="chk" id="checks"></ul>
+
+<h2>5. Figures I could not check</h2>
+<p>I tried to fetch published numbers to compare with, and the request was refused (HTTP 403 from this sandbox's proxy), so <b>no published figure was fetched or checked</b>. The rows below are recalled from memory, which makes them weaker and not independent of the formula (they are not counted in the tally above). The right-hand column is computed by the page.</p>
+<div class="scroll" tabindex="0" role="region" aria-label="Recalled figures"><table id="refTbl"></table></div>
+
+<h2>6. What the model leaves out</h2>
+<ul class="chk" id="limits"></ul>
+
+<footer>Part of <a href="../">Vigil</a>. Code is in this page, with no libraries. Made by Claude, an AI model by Anthropic.</footer>
+</main>
+
+<script id="core">
+"use strict";
+const Epi = (function () {
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  // Starting counts from the controls: N people, share v already immune (vaccinated), i0 infectious cases.
+  function start(N, v, i0) {
+    const S = Math.max(0, Math.round(N * (1 - v)) - i0);
+    return { N, S, I: i0, V: N - S - i0 };
+  }
+  // The pure final-size relation z = 1 - exp(-R0 z): Newton from z = 1 (f is convex, so it comes down monotonically).
+  function finalSizeZ(R0) {
+    if (!(R0 > 1)) return 0;
+    let z = 1;
+    for (let k = 0; k < 200; k++) {
+      const e = Math.exp(-R0 * z), f = z - 1 + e, d = 1 - R0 * e, nz = z - f / d;
+      if (Math.abs(nz - z) < 1e-16) { z = nz; break; }
+      z = nz;
+    }
+    return z;
+  }
+  // General final size with a head start (fractions of N): s_end = s0 exp(-R0 (s0 + i0 - s_end)); bisection on (0, s0).
+  function finalSusceptible(R0, s0, i0) {
+    if (s0 <= 0) return 0;
+    const g = s => s - s0 * Math.exp(-R0 * (s0 + i0 - s));
+    let lo = 0, hi = s0;
+    for (let k = 0; k < 200; k++) { const m = (lo + hi) / 2; if (g(m) < 0) lo = m; else hi = m; }
+    return (lo + hi) / 2;
+  }
+  // ODE (fractions of N), RK4, step T/100 days. Returns samples every step until I*N < 0.01 after the peak (or tCap).
+  function ode(R0, T, s0, i0, tCap) {
+    const g = 1 / T, b = R0 * g, h = T / 100;
+    let s = s0, i = i0, r = 0, t = 0, peakI = i, peakT = 0, sAtPeak = s;
+    const ts = [0], Is = [i], Ss = [s], Rs = [r];
+    const f = (s, i) => [-b * s * i, b * s * i - g * i, g * i];
+    let passed = false;
+    for (let n = 0; n < 2e6 && t < tCap; n++) {
+      const k1 = f(s, i), k2 = f(s + h / 2 * k1[0], i + h / 2 * k1[1]), k3 = f(s + h / 2 * k2[0], i + h / 2 * k2[1]), k4 = f(s + h * k3[0], i + h * k3[1]);
+      s += h / 6 * (k1[0] + 2 * k2[0] + 2 * k3[0] + k4[0]);
+      i += h / 6 * (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1]);
+      r += h / 6 * (k1[2] + 2 * k2[2] + 2 * k3[2] + k4[2]);
+      t += h;
+      ts.push(t); Is.push(i); Ss.push(s); Rs.push(r);
+      if (i > peakI) { peakI = i; peakT = t; sAtPeak = s; }
+      if (i < peakI && i < 1e-4 * peakI + 1e-300 && t > peakT) passed = true;
+      if (passed && i < 1e-9) break;
+    }
+    return { ts, I: Is, S: Ss, R: Rs, peakI, peakT, sAtPeak, sEnd: s, rEnd: r, T, R0, t };
+  }
+  // Gillespie run of the same model with whole people. record = keep (time, infectious) points.
+  function gillespie(R0, T, st, rand, record, tCap) {
+    const g = 1 / T, b = R0 * g;
+    let S = st.S, I = st.I, N = st.N, Rec = 0, t = 0, everInf = st.I, events = 0, peak = I, peakT = 0, SatPeak = S;
+    const ts = record ? [0] : null, Is = record ? [I] : null;
+    while (I > 0 && t < tCap) {
+      const a = b * S * I / N, c = g * I, tot = a + c;
+      t += -Math.log(1 - rand()) / tot;
+      if (rand() * tot < a) { S--; I++; everInf++; } else { I--; Rec++; }
+      events++;
+      if (I > peak) { peak = I; peakT = t; SatPeak = S; }
+      if (record) { ts.push(t); Is.push(I); }
+    }
+    return { everInf, S, I, t, events, peak, peakT, SatPeak, ts, Is, conserved: S + I + Rec === st.S + st.I };
+  }
+  // Many runs: the first `count` seeds from seed0. Fade-out = fewer than cut * expected final count people ever infected.
+  function batch(R0, T, st, seed0, count, cut) {
+    const s0 = st.S / st.N, i0 = st.I / st.N;
+    const expectedFrac = 1 - st.V / st.N - finalSusceptible(R0, s0, i0);   // share of N ever infected, incl. seeds
+    const expected = expectedFrac * st.N;
+    const sizes = new Array(count);
+    let fade = 0, majSum = 0, maj = 0;
+    for (let k = 0; k < count; k++) {
+      const res = gillespie(R0, T, st, mulberry32(seed0 + k), false, 1e9);
+      sizes[k] = res.everInf;
+      const minor = !(R0 * s0 > 1) || res.everInf < cut * expected;
+      if (minor) fade++; else { maj++; majSum += res.everInf; }
+    }
+    return { sizes, fade, maj, count, expected, expectedFrac, majMean: maj ? majSum / maj : NaN, cut };
+  }
+  return { mulberry32, start, finalSizeZ, finalSusceptible, ode, gillespie, batch };
+})();
+if (typeof module !== "undefined") module.exports = Epi;
+</script>
+<script>
+"use strict";
+(function () {
+  const $ = id => document.getElementById(id);
+  const pct = (x, d) => (100 * x).toFixed(d === undefined ? 1 : d) + "%";
+  const GHOSTS = 12, CUT = 0.2, RUNS = 4000;
+  const C = {};
+
+  // ---------- self-checks (fixed settings) ----------
+  function runChecks() {
+    const out = [];
+    const add = (ok, text) => out.push({ ok, text });
+    // 1 relation residual
+    let worst = 0; const Rs = [1.2, 1.5, 2, 3, 5, 8];
+    for (const R of Rs) { const z = Epi.finalSizeZ(R); worst = Math.max(worst, Math.abs(z - 1 + Math.exp(-R * z))); }
+    add(worst < 1e-12, "The solved z puts z &minus; 1 + e<sup>&minus;R0 z</sup> within " + worst.toExponential(1) + " of zero for R0 = " + Rs.join(", ") + " (limit 1e-12). For R0 of 1 or less the page returns z = 0: " + (Epi.finalSizeZ(1) === 0 && Epi.finalSizeZ(0.7) === 0 ? "yes" : "no") + ".");
+    // 2 ODE end vs z
+    const parts = [];
+    let okODE = true;
+    for (const R of [1.5, 2, 3]) {
+      const o = Epi.ode(R, 5, 1 - 1e-9, 1e-9, 5000), z = Epi.finalSizeZ(R), ever = 1 - o.sEnd;
+      const d = Math.abs(ever - z); if (!(d < 2e-4)) okODE = false;
+      parts.push("R0 " + R + ": ODE " + ever.toFixed(5) + " vs z " + z.toFixed(5));
+    }
+    add(okODE, "ODE started from one in a billion, run until nobody is infectious, ends within 0.0002 of the solved z: " + parts.join("; ") + ".");
+    // 3 herd threshold: S at the peak
+    const p2 = []; let okPk = true;
+    for (const R of [1.5, 2, 4]) {
+      const o = Epi.ode(R, 5, 1 - 1e-6, 1e-6, 5000), d = Math.abs(o.sAtPeak - 1 / R);
+      if (!(d < 2e-3)) okPk = false; p2.push("R0 " + R + ": " + o.sAtPeak.toFixed(4) + " vs " + (1 / R).toFixed(4));
+    }
+    add(okPk, "The susceptible share at the ODE's peak is within 0.002 of 1/R0 (so 1 &minus; 1/R0 have been infected or immune by then): " + p2.join("; ") + ".");
+    // 4 vaccination at the threshold
+    {
+      const R = 3, vc = 1 - 1 / R;
+      const grow = (v) => { const s0 = 1 - v - 1e-4, o = Epi.ode(R, 5, s0, 1e-4, 2000); return o.peakI / 1e-4; };
+      const lo = grow(vc - 0.03), hi = grow(vc + 0.03), at = grow(vc);
+      add(lo > 1.5 && hi <= 1.0000001 && at <= 1.0000001, "With R0 = 3 the threshold is " + pct(vc) + ". ODE infectious peak as a multiple of the starting share: " + lo.toFixed(2) + " with 3 points less immune (grows), " + hi.toFixed(2) + " with 3 points more (only falls), " + at.toFixed(2) + " exactly at the threshold (does not grow).");
+    }
+    // 5 fade-out vs 1/R0
+    const p5 = []; let ok5 = true;
+    for (const R of [1.5, 2, 3, 5]) {
+      const st = Epi.start(1000, 0, 1), b = Epi.batch(R, 1, st, 1000, RUNS, CUT), p = b.fade / b.count;
+      const s0 = st.S / st.N, qq = 1 / (R * s0), se = Math.sqrt(qq * (1 - qq) / b.count), sd = Math.abs(p - qq) / se;
+      if (!(sd <= 3)) ok5 = false;
+      p5.push("R0 " + R + ": " + pct(p, 1) + " vs " + pct(qq, 1) + " (" + sd.toFixed(1) + " SE)");
+    }
+    add(ok5, "Fade-out among " + RUNS.toLocaleString("en-US") + " seeded runs of 1,000 people with one case, against 1/(R0 &times; susceptible share), each within 3 standard errors: " + p5.join("; ") + ".");
+    // 6 three cases
+    {
+      const st = Epi.start(1000, 0, 3), b = Epi.batch(2, 1, st, 3000, RUNS, CUT), p = b.fade / b.count, q = Math.pow(1 / (2 * st.S / st.N), 3), se = Math.sqrt(q * (1 - q) / b.count);
+      add(Math.abs(p - q) <= 3 * se, "With 3 cases at the start and R0 = 2: " + pct(p, 1) + " fade out against (1/R0)<sup>3</sup> = " + pct(q, 1) + " (" + (Math.abs(p - q) / se).toFixed(1) + " SE).");
+    }
+    // 7 take-off size
+    {
+      const p7 = []; let ok7 = true;
+      for (const R of [2, 3]) {
+        const st = Epi.start(1000, 0, 1), b = Epi.batch(R, 1, st, 1000, RUNS, CUT), z = Epi.finalSizeZ(R), m = b.majMean / st.N;
+        if (!(Math.abs(m - z) < 0.01)) ok7 = false; p7.push("R0 " + R + ": " + pct(m, 1) + " vs " + pct(z, 1));
+      }
+      add(ok7, "Mean share infected among the runs that took off (at least " + pct(CUT, 0) + " of the expected final count), 1,000 people, within 1 point of z: " + p7.join("; ") + ".");
+    }
+    // 8 bookkeeping
+    {
+      let ok8 = true; const st = Epi.start(500, 0.2, 2);
+      for (let k = 0; k < 300; k++) { const r = Epi.gillespie(2.5, 4, st, Epi.mulberry32(50 + k), false, 1e9); if (!r.conserved || r.I !== 0 || r.S < 0) ok8 = false; }
+      add(ok8, "In 300 seeded runs with 20% immune, susceptible + infectious + recovered always add back to the starting total, nobody is left infectious at the end, and no count goes negative.");
+    }
+    // 9 same seed same run
+    {
+      const st = Epi.start(1000, 0, 1), a = Epi.gillespie(2, 5, st, Epi.mulberry32(7), false, 1e9), b = Epi.gillespie(2, 5, st, Epi.mulberry32(7), false, 1e9);
+      add(a.everInf === b.everInf && a.events === b.events && a.t === b.t, "The same seed gives the same run twice (" + a.everInf + " ever infected, " + a.events + " events).");
+    }
+    // 10 time scaling
+    {
+      const a = Epi.ode(2, 5, 0.999, 0.001, 5000), b = Epi.ode(2, 10, 0.999, 0.001, 5000);
+      add(Math.abs(a.rEnd - b.rEnd) < 1e-9 && Math.abs(b.peakT / a.peakT - 2) < 0.02, "Doubling the days infectious doubles the time of the ODE's peak (ratio " + (b.peakT / a.peakT).toFixed(3) + ") and leaves the final size unchanged.");
+    }
+    return out;
+  }
+
+  // ---------- drawing ----------
+  function colors() {
+    const cs = getComputedStyle(document.documentElement);
+    for (const k of ["bg", "panel", "ink", "muted", "line", "accent", "rand"]) C[k] = cs.getPropertyValue("--" + k).trim();
+  }
+  function setup(cv, h) {
+    const dpr = window.devicePixelRatio || 1, w = cv.clientWidth || 600;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, w, h); return { g, w, h };
+  }
+  function niceStep(max, n) {
+    const raw = max / n, p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p;
+    return (m < 1.5 ? 1 : m < 3 ? 2 : m < 7 ? 5 : 10) * p;
+  }
+  function axes(g, w, h, m, xmax, ymax, xlab, ylab, xfmt) {
+    g.font = "12px Georgia, serif"; g.fillStyle = C.muted; g.strokeStyle = C.line; g.lineWidth = 1;
+    const ys = niceStep(ymax, 5), xs = niceStep(xmax, 6);
+    g.textAlign = "right"; g.textBaseline = "middle";
+    for (let y = 0; y <= ymax * 1.0001; y += ys) {
+      const py = h - m.b - (y / ymax) * (h - m.t - m.b);
+      g.beginPath(); g.moveTo(m.l, py); g.lineTo(w - m.r, py); g.stroke();
+      g.fillText(String(Math.round(y * 1000) / 1000), m.l - 5, py);
+    }
+    g.textAlign = "center"; g.textBaseline = "top";
+    for (let x = 0; x <= xmax * 1.0001; x += xs) {
+      const px = m.l + (x / xmax) * (w - m.l - m.r);
+      g.fillText(xfmt ? xfmt(x) : String(Math.round(x * 100) / 100), px, h - m.b + 4);
+    }
+    g.fillText(xlab, m.l + (w - m.l - m.r) / 2, h - 16);
+    g.save(); g.translate(12, m.t + (h - m.t - m.b) / 2); g.rotate(-Math.PI / 2); g.textBaseline = "middle"; g.fillText(ylab, 0, 0); g.restore();
+  }
+  let last = null;
+  function drawChart() {
+    if (!last) return; colors();
+    const { od, main, ghosts, N } = last;
+    const cv = $("chart"), { g, w, h } = setup(cv, 300), m = { l: 46, r: 10, t: 10, b: 38 };
+    // x range
+    let tOde = od.t; for (let k = 0; k < od.ts.length; k++) if (k > 0 && od.I[k] * N < 0.5 && od.ts[k] > od.peakT) { tOde = od.ts[k]; break; }
+    let xmax = tOde; for (const r of [main].concat(ghosts)) xmax = Math.max(xmax, r.t);
+    xmax = Math.min(xmax, Math.max(tOde * 2.5, 20));
+    let ymax = od.peakI * N; for (const r of [main].concat(ghosts)) ymax = Math.max(ymax, r.peak);
+    ymax *= 1.06; if (ymax < 2) ymax = 2;
+    axes(g, w, h, m, xmax, ymax, "days", "people infectious");
+    const X = t => m.l + (t / xmax) * (w - m.l - m.r), Y = v => h - m.b - (v / ymax) * (h - m.t - m.b);
+    g.save(); g.beginPath(); g.rect(m.l, m.t, w - m.l - m.r, h - m.t - m.b); g.clip();
+    const step = (r, col, lw, alpha) => {
+      g.globalAlpha = alpha; g.strokeStyle = col; g.lineWidth = lw; g.beginPath();
+      let px = X(r.ts[0]), py = Y(r.Is[0]); g.moveTo(px, py);
+      const stride = Math.max(1, Math.floor(r.ts.length / 3000));
+      for (let k = 1; k < r.ts.length; k += stride) { const x = X(r.ts[k]); g.lineTo(x, py); py = Y(r.Is[k]); g.lineTo(x, py); }
+      g.lineTo(X(r.t), py); g.stroke(); g.globalAlpha = 1;
+    };
+    for (const r of ghosts) step(r, C.rand, 1, 0.3);
+    step(main, C.rand, 2, 1);
+    g.strokeStyle = C.accent; g.lineWidth = 2.5; g.beginPath();
+    for (let k = 0; k < od.ts.length; k++) { const x = X(od.ts[k]), y = Y(od.I[k] * N); if (k === 0) g.moveTo(x, y); else g.lineTo(x, y); }
+    g.stroke(); g.restore();
+    cv.setAttribute("aria-label", "Chart of infectious people against days. ODE peak " + Math.round(od.peakI * N) + " people on day " + od.peakT.toFixed(0) + ". This seed peaks at " + main.peak + ".");
+  }
+  let batchRes = null;
+  function drawHist() {
+    if (!batchRes || !last) return; colors();
+    const cv = $("hist"), { g, w, h } = setup(cv, 220), m = { l: 46, r: 10, t: 10, b: 38 };
+    const nb = 25, cnt = new Array(nb).fill(0), N = last.N;
+    for (const s of batchRes.sizes) cnt[Math.min(nb - 1, Math.floor(s / N * nb))]++;
+    const ymax = Math.max(...cnt) * 1.08 || 1;
+    axes(g, w, h, m, 1, ymax, "share of people ever infected", "runs", x => Math.round(x * 100) + "%");
+    const bw = (w - m.l - m.r) / nb;
+    g.fillStyle = C.rand; g.globalAlpha = 0.85;
+    for (let k = 0; k < nb; k++) { const bh = (cnt[k] / ymax) * (h - m.t - m.b); g.fillRect(m.l + k * bw + 1, h - m.b - bh, bw - 2, bh); }
+    g.globalAlpha = 1;
+    const X = f => m.l + f * (w - m.l - m.r);
+    g.strokeStyle = C.accent; g.lineWidth = 2; g.beginPath(); g.moveTo(X(batchRes.expectedFrac), m.t); g.lineTo(X(batchRes.expectedFrac), h - m.b); g.stroke();
+    g.setLineDash([4, 3]); g.strokeStyle = C.ink; g.lineWidth = 1; const cx = X(CUT * batchRes.expectedFrac); g.beginPath(); g.moveTo(cx, m.t); g.lineTo(cx, h - m.b); g.stroke(); g.setLineDash([]);
+  }
+
+  // ---------- main update ----------
+  function read() {
+    return { R0: +$("inR0").value, T: +$("inT").value, v: +$("inV").value / 100, N: +$("inN").value, i0: +$("inI0").value, seed: Math.max(0, Math.floor(+$("inSeed").value) || 0) };
+  }
+  function update() {
+    const p = read();
+    $("oR0").textContent = p.R0.toFixed(2); $("oT").textContent = p.T + (p.T === 1 ? " day" : " days"); $("oV").textContent = Math.round(p.v * 100) + "%";
+    const st = Epi.start(p.N, p.v, p.i0), s0 = st.S / st.N, i0f = st.I / st.N, vf = st.V / st.N;
+    const od = Epi.ode(p.R0, p.T, s0, i0f, 600 * p.T);
+    const main = Epi.gillespie(p.R0, p.T, st, Epi.mulberry32(p.seed), true, 1e9);
+    const ghosts = []; for (let k = 1; k <= GHOSTS; k++) ghosts.push(Epi.gillespie(p.R0, p.T, st, Epi.mulberry32(p.seed + k), true, 1e9));
+    const Reff = p.R0 * s0;
+    const sEnd = Epi.finalSusceptible(p.R0, s0, i0f), relEver = 1 - vf - sEnd, odeEver = 1 - vf - od.sEnd;
+    last = { p, st, od, main, ghosts, N: p.N, s0, i0f, vf, Reff, relEver, odeEver };
+    // message on this seed
+    const mainTook = Reff > 1 && main.everInf >= CUT * relEver * p.N;
+    const faded = ghosts.filter(r => !(Reff > 1 && r.everInf >= CUT * relEver * p.N)).length;
+    let msg;
+    if (Reff <= 1) msg = "R0 times the susceptible share is " + Reff.toFixed(2) + ", at or below 1, so each case infects fewer than one other on average: the ODE only falls, and this seed ended after " + main.everInf + " " + (main.everInf === 1 ? "person" : "people") + " ever infected.";
+    else if (mainTook) msg = "This seed took off: " + main.everInf + " of " + p.N + " people (" + pct(main.everInf / p.N) + ") were ever infected, peak " + main.peak + " infectious on day " + main.peakT.toFixed(0) + ". The ODE peaks at " + Math.round(od.peakI * p.N) + " on day " + od.peakT.toFixed(0) + ".";
+    else msg = "This seed fizzled out after " + main.everInf + " " + (main.everInf === 1 ? "person" : "people") + " ever infected, though the ODE ends at " + pct(odeEver, 0) + " ever infected. Try the next seed.";
+    msg += " Of the " + GHOSTS + " other seeds, " + (faded === 0 ? "none" : faded === GHOSTS ? "all" : faded) + " fizzled" + ".";
+    $("runmsg").textContent = msg;
+    // result cards
+    const hc = 1 - 1 / p.R0;
+    const cards = [
+      ["Herd-immunity threshold 1 &minus; 1/R0", p.R0 > 1 ? pct(hc) : "none (R0 is 1 or less)", p.R0 > 1 ? "You start with " + pct(vf, 0) + " immune: " + (vf >= hc ? "at or above it" : "below it") + "." : "Spread dies out with nobody immune."],
+      ["Share ever infected, from the relation", Reff > 1 ? pct(relEver) : pct(relEver) , "ODE end: " + pct(odeEver) + ". This seed: " + pct(main.everInf / p.N) + "."],
+      ["Chance of early fade-out", Reff > 1 ? pct(Math.pow(1 / Reff, p.i0)) : "certain", p.i0 === 1 ? "1/(R0 &times; susceptible share) for one case." : "(1/(R0 &times; susceptible share))<sup>" + p.i0 + "</sup> for " + p.i0 + " cases."],
+      ["Peak, ODE", Math.round(od.peakI * p.N) + " people", Reff > 1 ? "on day " + od.peakT.toFixed(0) + "; susceptible share then " + pct(od.sAtPeak) + " (1/R0 = " + pct(1 / p.R0) + ")." : "no peak after day 0."]
+    ];
+    $("res").innerHTML = cards.map(c => "<div>" + c[0] + "<b>" + c[1] + "</b>" + c[2] + "</div>").join("");
+    $("chartnote").textContent = "The orange and teal lines start from the same " + p.i0 + (p.i0 === 1 ? " case" : " cases") + ". The random run's rise starts at a random moment, so even a run that takes off peaks earlier or later than the ODE. Days infectious only stretches the time axis: it does not change the final size or the chance of fade-out.";
+    drawChart();
+    scheduleBatch();
+  }
+  let bt = null;
+  function scheduleBatch() { clearTimeout(bt); $("batchmsg").textContent = "Counting…"; bt = setTimeout(runBatch, 200); }
+  function runBatch() {
+    if (!last) return;
+    const p = last.p, st = last.st, n = +$("inB").value, s0 = +$("inB0").value || 0;
+    const b = Epi.batch(p.R0, 1, st, s0, n, CUT); batchRes = b;
+    const lines = [];
+    const Reff = last.Reff, q = Reff > 1 ? Math.pow(1 / Reff, p.i0) : 1, ph = b.fade / n, se = Math.sqrt(q * (1 - q) / n);
+    if (Reff > 1) {
+      const sd = se > 0 ? Math.abs(ph - q) / se : 0;
+      lines.push(n + " runs from seed " + s0 + ": " + b.fade + " fizzled (" + pct(ph) + "), formula " + pct(q) + ", gap " + (100 * Math.abs(ph - q)).toFixed(1) + " points (" + sd.toFixed(1) + " standard errors)" + (sd <= 3 ? ", inside sampling noise." : ", outside sampling noise: expected where R0 is near 1 or N is small, because the line between a fizzle and a take-off blurs there."));
+      lines.push(b.maj === 0 ? "None took off." : b.maj + " took off, with " + pct(b.majMean / p.N) + " of people ever infected on average, against " + pct(last.relEver) + " from the relation.");
+    } else lines.push(n + " runs: all " + n + " fizzled, as R0 times the susceptible share is " + Reff.toFixed(2) + ".");
+    $("batchmsg").textContent = lines.join(" ");
+    $("histnote").textContent = "Teal line: share ever infected from the relation (" + pct(b.expectedFrac) + "). Dashed line: " + pct(CUT, 0) + " of that, my cut-off between “fizzled” and “took off”. Runs left of it count as fade-outs.";
+    fsTable(b); drawHist();
+  }
+  function fsTable(b) {
+    const L = last, p = L.p, rows = [];
+    const rEver = L.relEver, oEver = L.odeEver, mEver = L.main.everInf / p.N;
+    const f = x => pct(x);
+    rows.push(["Share ever infected", f(rEver), f(oEver), b && b.maj ? f(b.majMean / p.N) + " (" + b.maj + " runs that took off)" : "none took off", f(mEver)]);
+    rows.push(["Chance of early fade-out", L.Reff > 1 ? f(Math.pow(1 / L.Reff, p.i0)) : "100.0%", "–", b ? f(b.fade / b.count) + " (" + b.count + " runs)" : "–", L.main.everInf < CUT * rEver * p.N || L.Reff <= 1 ? "fizzled" : "took off"]);
+    rows.push(["Susceptible share at the peak of infections", L.Reff > 1 ? f(1 / p.R0) : "no peak", L.Reff > 1 ? f(L.od.sAtPeak) : "–", "–", L.Reff > 1 && L.main.peak > L.main.ts.length * 0 && L.main.everInf >= CUT * rEver * p.N ? f(L.main.SatPeak / p.N) : "–"]);
+    $("fsTbl").innerHTML = "<tr><th></th><th>Formula</th><th>ODE</th><th>Many random runs</th><th>This seed</th></tr>" + rows.map(r => "<tr>" + r.map(c => "<td>" + c + "</td>").join("") + "</tr>").join("");
+    $("fsNote").textContent = "With fewer than all of the people susceptible at the start, the formula column solves the general relation s_end = s0 exp(−R0 (s0 + i0 − s_end)) in code; with nobody immune and a tiny seed this is z = 1 − e^(−R0 z). The susceptible share at the peak is 1/R0 whatever the starting immunity; for the random run it is shown only when it took off, and a single run scatters around it.";
+  }
+
+  // ---------- static parts ----------
+  function statics() {
+    const checks = runChecks(), ok = checks.filter(c => c.ok).length;
+    $("tally").innerHTML = ok === checks.length ? "<b class=\"ok\">All " + checks.length + " self-checks pass.</b> Each is computed by this page's code from a formula or a seeded run; none needs a published figure." : "<b class=\"bad\">" + (checks.length - ok) + " of " + checks.length + " self-checks fail.</b> The failures are marked below.";
+    $("checks").innerHTML = checks.map(c => "<li><b class=\"" + (c.ok ? "ok" : "bad") + "\">" + (c.ok ? "pass" : "FAIL") + "</b> " + c.text + "</li>").join("");
+    const ref = [
+      ["Measles, R0 recalled as about 12 to 18", "about 92% to 95% immune needed", pct(1 - 1 / 12) + " to " + pct(1 - 1 / 18)],
+      ["Seasonal flu, R0 recalled as about 1.3", "about 23% immune needed", pct(1 - 1 / 1.3)],
+      ["R0 = 2, textbook final size recalled as about 80%", "about 80% ever infected", pct(Epi.finalSizeZ(2))]
+    ];
+    $("refTbl").innerHTML = "<tr><th>Case (recalled)</th><th>Recalled figure</th><th>This page computes</th></tr>" + ref.map(r => "<tr>" + r.map(c => "<td>" + c + "</td>").join("") + "</tr>").join("");
+    $("limits").innerHTML = [
+      "Everyone meets everyone at the same rate. There are no households, ages or networks, and no people who infect many more than others. Real outbreaks have such variation, which I did not model and did not test against anything.",
+      "Time spent infectious is exponential (many short, a few long), because that is what makes the ODE and the random run the same model. Real infectious periods are less spread out, and the fade-out chance for them is not computed here.",
+      "No incubation period, births, deaths, waning immunity or changes in behaviour. The vaccinated share is perfectly protected before the start, a simplification.",
+      "“Took off” means at least " + pct(CUT, 0) + " of the final count the relation expects: my choice. Close to R0 = 1 the answer depends on it (in a run I made with 1,000 people, 4,000 runs and R0 = 1.1, 85.6% fizzled at a 20% cut-off, 89.7% at 50%, against 1/R0 = 90.9%; measured once by the builder, not recomputed here).",
+      "Small populations and R0 near 1 pull the measured fade-out away from 1/R0 and the final size away from z; the page prints the gap and does not hide it.",
+      "No real outbreak data and no published table were compared with; the figures in section 5 are from memory. Not viewed on a real phone."
+    ].map(t => "<li>" + t + "</li>").join("");
+  }
+
+  function wire() {
+    for (const id of ["inR0", "inV"]) $(id).addEventListener("input", update);
+    for (const id of ["inT", "inN", "inI0", "inSeed"]) $(id).addEventListener("input", update);
+    $("bNext").addEventListener("click", () => { $("inSeed").value = (+$("inSeed").value || 0) + 1; update(); });
+    $("bReset").addEventListener("click", () => { $("inR0").value = 2; $("inT").value = 5; $("inV").value = 0; $("inN").value = 1000; $("inI0").value = 1; $("inSeed").value = 7; update(); });
+    $("bBatch").addEventListener("click", runBatch); $("inB").addEventListener("change", runBatch); $("inB0").addEventListener("change", runBatch);
+    window.addEventListener("resize", () => { drawChart(); drawHist(); });
+    try { window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { drawChart(); drawHist(); }); } catch (e) { /* older browsers */ }
+  }
+  $("lgGhost").textContent = GHOSTS; statics(); wire(); update();
+  window.__epi = { read, update, get last() { return last; }, get batch() { return batchRes; } };
+})();
+</script>
+</body>
+</html>
