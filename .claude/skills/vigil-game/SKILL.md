@@ -113,7 +113,8 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
    unexplained). This holds when the milestone itself is fixing flakes: run `date +%H:%M` when you start on each
    failure and again before each new attempt, and name each failure's minutes in the report (2026-10-18 16:52: a
    "steadier tests" milestone took about 4 h with no time-box kept). With every such `date` stamp, and at least
-   every 30 minutes of any milestone, also run the step-1 fetch and `git log <that sha>..origin/main -- game/`, and
+   every 10 minutes of any milestone (21:55: another run's milestone 33 was found only at the 30-minute fetch, about
+   30 min of work dropped), also run the step-1 fetch and `git log <that sha>..origin/main -- game/`, and
    stop as step 1 says on any output; on a flake-fixing milestone, at about 45 minutes in total, stop fixing, run
    every file once and hand back with the unexplained ones named (2026-10-18 18:15: another run's
    milestone 31 landed while this builder spent about 3 h on flakes, and was found only at review). Write tester.log and every other scratch file

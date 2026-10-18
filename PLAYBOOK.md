@@ -125,6 +125,9 @@ Trials in progress. Format: `- (started YYYY-MM-DD) the habit. Check: what would
 
 - (started 2026-10-18) The game builder breaks each new test check once (a scratch edit) and sees it fail before
   counting it. Check: no tester or review finds a game check that passes vacuously (17:58: flame flood check did).
+- (started 2026-10-18) A new game test that counts a value (points, items, health) pins the clock of, or turns off,
+  every other system that can change that value (shades, timers, mobs). Check: no tester rerun finds such a test
+  flaky (21:55: welcome.test failed 1 in 4 because a shade deed took the help point; fixed by pinning shades' clock).
 
 ## Proposals for the owner
 
@@ -143,9 +146,8 @@ Changes only the owner can make to the routine. The owner can delete a line once
   mostly the 5x loop, while the others waited. Options: the builder loops only files its increment touched and a
   Sonnet tester (found a flake the builder passed 5/5, 04:22) the rest, or a script runs loop.mjs in the background.
   Mid-run stop-hook reminders about uncommitted changes are noise (the chair commits at the end).
-- (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (about 2 h). Runs collided nine times (05:38,
-  09:31, 17:58, 18:15; 20:21 began 3 min after the last ended, whose profile push then forced a reset and redo),
-  dropping up to 3 h of game work and ~2.3M subagent tokens. Fix the schedule (at least 30 min gap), or push a
+- (2026-10-16) Stop runs from overlapping and cap a run's wall-clock (about 2 h). Runs collided ten times (05:38 to
+  21:55, which lost about 30 min to another run's milestone 33), dropping up to 3 h of game work and ~2.3M tokens. Fix the schedule (at least 30 min gap), or push a
   `claim/<milestone>` branch at start; a run finding a claim under 4 h old skips the game. Start on `main`.
 - (2026-10-16) `tools/game_patchnotes.py` splits game/CHANGELOG.md on `### ` only, so an entry under `## ` vanishes
   from the patch notes (07:20, review only), and it drops every paragraph not labelled Players can now / Fixed /
@@ -158,12 +160,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-17: patch-notes proposal extended: the tool silently drops unlabelled paragraphs (15:30 known limit).
-- 2026-10-17: new practice, briefs never ask for a subject tag; none exists and the 15:30 keeper searched for one.
-  Not acted on: tennis "exact" caveat and backtick (status-words practice); tester-log experiment not judged (one run,
-  report arrived); profile pruned 3 drafts at 30 (proposal stands); keeper skill vs CLAUDE.md journal (proposal stands).
-- 2026-10-17: Direction's range and sources bullets merged and shortened (file was about 158 lines above the
-  changelog, limit about 150); Benford adds data forensics, and ecology and sport join the list.
 - 2026-10-17: status-words practice now checks known limits and roadmap lines against the run's measurements and cuts
   "now" from text that stays up; 19:17 review found a known limit contradicting the measured contrast, a roadmap
   overclaim and "now" in permanent descriptions.
@@ -279,3 +275,11 @@ Changes only the owner can make to the routine. The owner can delete a line once
   profile push forced a reset and redo) and a 30 min gap. Not acted on: "never covers" true only at the centre and
   memory facts stated as fact (status-words practice); game builder about 88 min (game-loop proposal stands);
   break-checks-once experiment not judged (two runs; glitter checks each broken once, none vacuous in review).
+- 2026-10-18: vigil-game skill now has the builder fetch and check main at least every 10 min (was 30); at 21:55
+  another run's milestone 33 was caught only at the builder's 30-min fetch and about 30 min of work was dropped.
+- 2026-10-18: new experiment, game tests that count a value pin or turn off every other system that can change it;
+  at 21:55 the tester's rerun found welcome.test failing 1 in 4 because a shade deed took the point.
+- 2026-10-18: overlap proposal updated with the tenth collision (21:55) and shortened. Not acted on: review's five
+  wording fixes ("two" for "at least two", false UI note, docs lagging milestone 34, "no rank", printed-sheet
+  overclaim; status-words practice); fixer's stray journal stub (CLAUDE.md proposal stands); profile dropped the 3
+  oldest unticked drafts at 30 (POSTS proposal stands); break-checks-once experiment not judged (three runs).
