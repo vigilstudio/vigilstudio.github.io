@@ -19,6 +19,7 @@ import { createGive, GIVE_RANGE } from "./give.js";
 import { createSwap } from "./swap.js";
 import { cleanSave, adoptSave, SOFT_STACK, CRAFTED, LAMP_KEYS, ITEMS } from "./inventory.js";
 import { createFlame, FLAME_RANGE } from "./flame.js";
+import { createTally, tallyText, DAWN_HOUR } from "./tally.js";
 import { createWelcome, WELCOME_R, WELCOME_S } from "./welcome.js";
 import { createBeacons, FLAME_FUEL, BEACON_NEED, BEACON_RANGE, LIT_RADIUS, MIN_PLAYERS, MAX_OWN, WORTH } from "./beacon.js";
 import { createQuests, noteText, pickDay, shareCap, MIN_PLAYERS as NOTE_PLAYERS } from "./quests.js";
@@ -120,7 +121,7 @@ const pinnedWeather = pickWeather(location.search); // ?weather=clear|mist|rain 
 const lightNow = () => lightFor(pinnedHour ?? hourAt(Date.now()));
 let lastHud = 0, lastMap = 0, mapOn = true;
 const tapCounts = {};
-let welcome = null, welcomeView = { mark: null, helping: false }, flame = null, stone = null, fishing = null, fishView = null, rankNet = null, net = null, presence = null, talk = null, gather = null, give = null, swap = null, craft = null, beacon = null, quests = null, shades = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
+let welcome = null, welcomeView = { mark: null, helping: false }, flame = null, stone = null, fishing = null, fishView = null, rankNet = null, net = null, presence = null, talk = null, gather = null, give = null, swap = null, craft = null, beacon = null, quests = null, shades = null, tally = null, playing = false, lastT = 0, lastSave = 0, joinedAt = 0;
 const input = createInput(canvas, () => playing);
 
 async function enter() {
@@ -151,6 +152,7 @@ async function enter() {
   clockCheck = createClockCheck(net, presence.peers, { clock: () => Date.now() + clockSkew * 1000 }); paintClock();
   stone = createStone(net, world, me, presence.peers, { clock: shadeNow, onEvent: stoneEvent }); $("stoneinfo").textContent = ""; paintStone(true);
   me.snuffed = false; $("shadeinfo").textContent = ""; lastShadeKey = ""; paintShades(true);
+  tally = createTally({ clock: shadeNow }); paintTally(true);
   me.say = null; me.emote = null; $("questinfo").textContent = "";
   paintQuests(true);
   paintBeacon(true); $("beaconinfo").textContent = ""; $("flameinfo").textContent = ""; lastFlameKey = ""; paintFlame(true); beam.reset(); wasKept = false; $("watchinfo").textContent = ""; paintWatch(true);
@@ -174,8 +176,8 @@ function leaveRoom() {
   if (swap) swap.cancel(); // an offer of mine that is still open: the item set aside goes back to the pack
   fishing.leave(); presence.leave(); net.leave();
   strides.clear(); setSteps(false); steps.close();
-  playing = false; net = null; presence = null; talk = null; gather = null; give = null; swap = null; craft = null; beacon = null; flame = null; me.flame = false; quests = null; shades = null; rankNet = null; welcome = null; welcomeView = { mark: null, helping: false }; renderer.setWelcome(null); clockCheck = null; stone = null; renderer.setStone(null); fishing = null; fishView = null; paintFish(null); paintClock(); me.snuffed = false;
-  paintShades(true); paintQuests(true); paintBeacon(true); paintFlame(true); setTalkOpen(false); $("heard").textContent = ""; paintGive(); paintTrade(); paintPack(); paintCraft();
+  playing = false; net = null; presence = null; talk = null; gather = null; give = null; swap = null; craft = null; beacon = null; flame = null; me.flame = false; quests = null; shades = null; tally = null; rankNet = null; welcome = null; welcomeView = { mark: null, helping: false }; renderer.setWelcome(null); clockCheck = null; stone = null; renderer.setStone(null); fishing = null; fishView = null; paintFish(null); paintClock(); me.snuffed = false;
+  paintShades(true); paintTally(true); paintQuests(true); paintBeacon(true); paintFlame(true); setTalkOpen(false); $("heard").textContent = ""; paintGive(); paintTrade(); paintPack(); paintCraft();
   document.body.classList.remove("playing");
   $("connline").textContent = ""; $("copystate").textContent = ""; $("copyfallback").hidden = true;
   $("enter").disabled = false;
@@ -213,6 +215,7 @@ function frame(t) {
   flame.tick();
   quests.tick();
   beam.update(watchIsKept(), dt, reducedMotion());
+  tally.watch();
   shades.tick(dt);
   rankNet.tick();
   welcomeView = welcome.tick(); renderer.setWelcome(welcomeView.mark);
@@ -226,6 +229,7 @@ function frame(t) {
   renderer.draw(me, presence.peers, input.stick, t, light, gather.visible(), reach, fires, shades.list(), skyAt(world, shadeNow(), pinnedWeather), watchView(), fishView = fishing.view());
   paintFish(fishView);
   paintShades();
+  paintTally();
   paintRank();
   paintWelcomeNote();
   paintStone();
@@ -333,6 +337,24 @@ function paintWatch(force) {
     : `The long watch: ${n} of ${beaconList.length} beacons lit. Light all ${beaconList.length} at once and the ruined lighthouse lights for everyone in this lantern.`;
   if (kept && !wasKept) $("watchinfo").textContent = "All the beacons burn. The ruined lighthouse is lit!";
   wasKept = kept;
+}
+// ---- the dawn tally (milestone 35): from the night hour DAWN_HOUR on, the numbers of the night, worked out here from shared counts ----
+const tallyIn = () => ({ lit: beaconList.map((_, b) => !!beacon && beacon.shares.lit(b)), kept: watchIsKept(), notes: quests ? quests.notes.map((_, q) => quests.shares.done(q)) : [], synced: !!beacon && beacon.synced() && !!quests && quests.synced() });
+const tallyShown = () => !!tally && lightNow().hour >= DAWN_HOUR;
+let lastTallyKey = "";
+function paintTally(force) {
+  if (force) lastTallyKey = "";
+  const show = tallyShown(), v = show ? tally.view(tallyIn()) : null;
+  const key = show ? JSON.stringify(v) : "";
+  if (key === lastTallyKey) return;
+  lastTallyKey = key;
+  $("tally").hidden = !show;
+  if (!show) { $("tallylist").textContent = ""; $("tallynote").textContent = ""; return; }
+  const t = tallyText(v);
+  $("tallytitle").textContent = t.title;
+  const ul = $("tallylist"); ul.textContent = "";
+  for (const line of t.lines) { const li = document.createElement("li"); li.textContent = line; ul.append(li); }
+  $("tallynote").textContent = t.note;
 }
 const FUEL_ITEMS = ["driftwood", "berries", "oil"];
 const fireList = () => beaconList.map((l, b) => beacon ? { x: l.x, y: l.y, n: b, fuel: beacon.shares.fuel(b), frac: Math.min(1, beacon.shares.fuel(b) / BEACON_NEED), lit: beacon.shares.lit(b) } : { x: l.x, y: l.y, n: b, fuel: 0, frac: 0, lit: false });
@@ -471,6 +493,7 @@ function shadeEvent(type, k, sh) {
   }
   if (type === "helped") rank.credit("relight", `${k}.${++helpNo}`);
   if (type === "banished" && shades && grew(`s${shades.slot}.${k}`, shades.shares.own(k, me.seed), true)) rank.credit("shade", `${shades.slot}.${k}`);
+  if (type === "banished" && tally && shades) tally.banished(shades.slot, k);
   if (type === "banished") { drivenOff++; if (sh) renderer.burst(sh.x, sh.y, performance.now()); }
   if (say) $("shadeinfo").textContent = say;
   lastShadeKey = "";
@@ -927,6 +950,7 @@ window.__longWatch = {
   stone: () => stone ? { x: stone.spot.x, y: stone.spot.y, near: stone.near(), tune: stone.tune(), glow: stone.glow(), recent: stone.recent(), stats: stone.stats(), panel: !$("stone").hidden, text: $("stonestate").textContent, info: $("stoneinfo").textContent, notesPlayed: steps.notesPlayed, soundOn: steps.on, reach: STONE_REACH, rank: rank.points } : null,
   clock: () => ({ skew: clockSkew, warnS: CLOCK_WARN_S, offsets: clockCheck ? clockCheck.offsets() : [], note: $("clocknote").hidden ? "" : $("clocknote").textContent }),
   snuffLog: () => snuffLog.map(e => ({ ...e })),
+  tally: () => { const show = tallyShown(), v = tally ? tally.view(tallyIn()) : null; return { shown: show, panel: !$("tally").hidden, view: v, title: $("tallytitle").textContent, lines: [...$("tallylist").children].map(li => li.textContent), note: $("tallynote").textContent, night: tally ? tally.night : null }; },
   watch: () => ({ kept: watchIsKept(), f: beam.f, view: watchView(), lighthouse: lighthouse ? { x: lighthouse.x, y: lighthouse.y } : null, radius: LIGHTHOUSE_RADIUS, panel: !$("watch").hidden, text: $("watchstate").textContent, info: $("watchinfo").textContent }),
   fish: () => { const fv = fishing ? fishing.view() : null; return fishing ? { line: fishing.line, shoal: (() => { const s = fishing.shoal(); return s ? { id: s.id, x: s.x, y: s.y } : null; })(), fish: fv.fish.map(f => ({ id: f.id, x: f.x, y: f.y, alpha: f.alpha, shoal: f.shoal })), lines: fv.lines.map(l => ({ ...l })), oil: inv.oil, info: $("fishinfo").textContent, state: $("fishstate").textContent, btn: $("fishbtn").textContent, panel: !$("fishing").hidden, peerLines: presence ? [...presence.peers.values()].map(p => ({ id: p.id, line: p.line ? { x: p.line.x, y: p.line.y } : null })) : [] } : null; },
   castAt: (x, y) => (fishing ? fishing.cast(x, y) : null), // tests only; the real cast goes through the button and F
