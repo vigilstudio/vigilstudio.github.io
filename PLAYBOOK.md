@@ -90,7 +90,8 @@ Habits that have proven themselves. Follow them unless the run has a good reason
   against a second free source of a different origin (not a copy or re-fit of the same record) before building and
   flags each disagreement on the page; when none is reachable, the page says the check is not independent (promoted
   from an experiment: since Element Timeline no review found an unflagged wrong data value).
-- Before review, each builder lists its status words and checks each against evidence: "Fixed" needs a test that
+- Before review, each builder, and each later role that writes or rewords public text (tester, keeper, profile
+  agent, chair), lists its status words and checks each against evidence: "Fixed" needs a test that
   failed before and passes now; "first", "only", "never", "keeps", "intact" are checked against the piece table,
   code or a test; "published", "agree"/"agreement" and "every"/"all"/"any" need a fetched source or a test ("any"
   names the range the code supports), and a search-summary or memory value says so where shown; "N checks against
@@ -98,8 +99,8 @@ Habits that have proven themselves. Follow them unless the run has a good reason
   counted and what chance it means; known limits and roadmap lines match this run's measurements; "now" is cut from
   text that stays up. A name for what a mechanism is ("motion work") is checked against the drawn or computed
   geometry, and each test's expected value names its source or derivation. After any later edit, re-read the words
-  describing the edited thing (10-18 09:22 "15 checks" when 4 were; 20:21 "motion work" with the hour wheel off the
-  minute axis, a Metonic test target off by 10x).
+  describing the edited thing (09:22 "15 checks" when 4 were; 20:21 "motion work" off-axis; 23:22 tester, keeper
+  and chair each added an untested "every"/"same" after an honest builder).
 - Studio tables and pages have no subject-tag field: briefs never ask for a tag (15:30: the keeper looked, found none).
 - Commit messages leave one blank line between the body and the `Co-Authored-By` / `Claude-Session` trailers; with a
   single newline git folds the trailer into the subject, and the profile README showed it (2026-10-16 14:26).
@@ -160,14 +161,6 @@ Changes only the owner can make to the routine. The owner can delete a line once
 
 ## Changelog
 
-- 2026-10-17: status-words practice now checks known limits and roadmap lines against the run's measurements and cuts
-  "now" from text that stays up; 19:17 review found a known limit contradicting the measured contrast, a roadmap
-  overclaim and "now" in permanent descriptions.
-- 2026-10-17: game-loop proposal shortened and updated (game builder about 150 min, stop-hook noise all run); the
-  overlap proposal now asks the start check to find the studio on main (HEAD detached at 19:17 start). Not acted on:
-  the fixer's hand-back said only "placeholder" (one occurrence; the chair verified by grep and re-ran checks);
-  tester-log experiment not judged (two runs since it started, report arrived both times, 24/24 files at 19:17);
-  scanner still sees only tracked files (proposal stands).
 - 2026-10-17: fetch practice now also fetches when any builder hands back and before the game tester, and stops the
   game step when main's game/ moved since the start sha; at 20:50 the chair fetched only at start and 118 min of
   game work was lost to the 19:17 run's milestone 24 (7656c71), caught only by the pre-commit fetch.
@@ -283,3 +276,12 @@ Changes only the owner can make to the routine. The owner can delete a line once
   wording fixes ("two" for "at least two", false UI note, docs lagging milestone 34, "no rank", printed-sheet
   overclaim; status-words practice); fixer's stray journal stub (CLAUDE.md proposal stands); profile dropped the 3
   oldest unticked drafts at 30 (POSTS proposal stands); break-checks-once experiment not judged (three runs).
+- 2026-10-18: status-words practice now covers every role that writes or rewords public text after the builder
+  (tester, keeper, profile agent, chair); at 23:22 the builder's words held, but the tester's late-joiner note was
+  false, the keeper's game row and README/STUDIO/Workbench rows said an untested "every page", and the chair's
+  profile draft needed the same fix.
+- 2026-10-18: vigil-game skill now has a tester who rewords a player-facing note name the test showing it true, or
+  leave it and report the doubt (same evidence, review only). Not acted on: break-checks-once experiment not judged
+  (four runs; 80 tally checks each broken once, a ninth break exposed dead code); pin-clock experiment not judged
+  (one run; the builder replaced a racy check of its own); toy refiner's pause-input bug fixed as refine skill asks;
+  piece refiner moved stated limits to code constants (counts practice); security 0 BLOCK; no overlap this run.

@@ -152,6 +152,9 @@ Use it when `game/DESIGN.md` does not exist, or when CHANGELOG.md shows 10 incre
    this run's CHANGELOG entry (**Changed code:**, **Unverified:**, **Tested:**) before handing back, including in
    **Tested:** every file that failed once and passed on rerun, with its failing check (2026-10-16 21:04: the
    world.test fix and a 0.9 s stall; 2026-10-17 15:30: the `both` and `living` flakes; all review only).
+   A tester who rewords a player-facing note or doc claim names the test (file and check) showing the new wording
+   true for every case it covers (late joiner, reload, solo); with none, the tester leaves the wording and reports
+   the doubt (2026-10-18 23:22: a late joiner's tally "same as everyone else's", false in two cases, review only).
 5. Run `python3 tools/game_patchnotes.py` (from the studio root). It rebuilds the "Patch notes" panel on
    game/index.html, one collapsible version per changelog entry, newest open. Never edit that panel by hand.
    Keep the page layout: patch notes above the game info; "What this is, plainly" hidden until someone clicks
